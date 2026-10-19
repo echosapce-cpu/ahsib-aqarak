@@ -27,13 +27,19 @@ Start-Process "https://script.google.com/home/usersettings"
 Read-Host "In the page that opened, switch 'Google Apps Script API' to ON, then press Enter here"
 
 Step "4/6 Sign in to Google (browser opens - choose echosapce@gmail.com and Allow)"
-clasp login
+if (Test-Path (Join-Path $env:USERPROFILE ".clasprc.json")) { Write-Host "Already signed in - skipping." } else { clasp login }
 
 Step "5/6 Attaching the script to your sheet and uploading the code"
 $dir = Join-Path $env:TEMP ("aqar-backend-" + (Get-Date -Format "yyyyMMddHHmmss"))
 New-Item -ItemType Directory -Path $dir | Out-Null
 Set-Location $dir
 clasp create --title "ahsib-aqarak backend" --parentId $SheetId --rootDir .
+if (-not (Test-Path (Join-Path $dir ".clasp.json"))) {
+  Write-Host "`nSTOPPED: Google Apps Script API is still OFF (or not active yet)." -ForegroundColor Red
+  Write-Host "Open https://script.google.com/home/usersettings , switch it ON, wait 2 minutes, then run the same command again." -ForegroundColor Yellow
+  Start-Process "https://script.google.com/home/usersettings"
+  return
+}
 Invoke-WebRequest -UseBasicParsing $Raw -OutFile (Join-Path $dir "Code.gs")
 $manifest = @'
 {
