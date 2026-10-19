@@ -1,0 +1,264 @@
+{
+  "_meta": {
+    "last_verified": "2026-10-19",
+    "note": "Secondary sources unless marked official. Re-verify before publishing; the weekly scan updates this file.",
+    "sources": {
+      "dubai_buy": "https://realestateclubdubai.com/blog/buying-guide/what-are-the-fees-for-buying-property-in-uae-2026-complete-breakdown-dld-broker-mortgage (2026-04-27)",
+      "abudhabi_buy": "https://bloomholding.com/articles/abu-dhabi-property-fees-2026 (2026-02-22)",
+      "ltv": "https://realestateclubdubai.com/blog/buying-guide/how-much-can-you-borrow-ltv-rules-dubai (2026-04-06), CBUAE Circular 31/2013",
+      "abudhabi_str": "https://www.bnbcalc.com/de/blog/short-term-rental-regulation/Abu-Dhabi-guide (checked 2026-07, DCT Holiday Homes System)",
+      "dubai_str": "https://realestateclubdubai.com/blog/property-management/dubai-holiday-home-fee-relief-2026-permit-exemption-municipality-fee (2026-08-04)",
+      "sharjah_buy": "https://sandsofwealth.com/blogs/news/sharjah-property-taxes-fees (2026-09-21) ~4% normal; ~2% during ACRES promos",
+      "ajman_buy": "https://www.propertyfinder.ae/blog/?p=111032 (2026-10-06)",
+      "rak_buy": "https://sanad.mun.rak.ae/docs/en/services-card-arabic-temp-28 (RAK Municipality, official)",
+      "sharjah_str": "https://www.bnbcalc.com/fr/blog/short-term-rental-regulation/Sharjah-guide (checked 2026-07, Exec. Council Res. 25/2021)",
+      "rak_str": "https://www.bnbcalc.com/de/blog/short-term-rental-regulation/Ras-Al-Khaimah-guide (2026-08-24)",
+      "fujairah_uaq": "Only ~4% reported by https://realestateclubdubai.com (2026-04-27); no itemised official source found - LOW confidence"
+    }
+  },
+  "vat": 0.05,
+  "emirates": {
+    "dubai": {
+      "transfer_pct": 0.04,
+      "fixed": {
+        "dld_admin": 580,
+        "title_deed": 250
+      },
+      "trustee": {
+        "threshold": 500000,
+        "low": 4000,
+        "high": 4200,
+        "vat": true
+      },
+      "broker_pct": 0.02,
+      "mortgage_reg_pct": 0.0025,
+      "mortgage_reg_fixed": 290,
+      "mortgage_reg_min": 0,
+      "mortgage_reg_max": null,
+      "bank_fee_pct": 0.01,
+      "bank_fee_cap": 10000,
+      "valuation": 3000,
+      "noc_estimate": 2000,
+      "str": {
+        "licence_annual": 1300,
+        "setup_one_off": 0,
+        "tourism_fee_pct": 0.0,
+        "tourism_per_room_night": 10,
+        "status_2026": "May 2026 relief: permit fee and Tourism Dirham exempt, 7% municipality fee suspended, no end date published. Defaults keep the normal (non-relief) values; set relief=true to apply.",
+        "tourism_per_unit_night": 0
+      },
+      "confidence": "high"
+    },
+    "abu_dhabi": {
+      "transfer_pct": 0.02,
+      "fixed": {
+        "title_deed": 1000,
+        "admin": 450
+      },
+      "trustee": null,
+      "broker_pct": 0.02,
+      "mortgage_reg_pct": 0.001,
+      "mortgage_reg_fixed": 0,
+      "mortgage_reg_min": 500,
+      "mortgage_reg_max": 1000,
+      "bank_fee_pct": 0.01,
+      "bank_fee_cap": 5000,
+      "valuation": 3000,
+      "noc_estimate": 2000,
+      "str": {
+        "licence_annual": 900,
+        "setup_one_off": 1550,
+        "tourism_fee_pct": 0.06,
+        "tourism_per_room_night": 0,
+        "status_2026": "DCT Holiday Homes System (Dec 2025): 1 whole unit per owner by default, room-sharing banned, 6% tourism fee on guest invoice paid by host.",
+        "tourism_per_unit_night": 0
+      },
+      "notes": "Registration fee quoted 2% (range 1-4%, sometimes split buyer/seller). Default assumes buyer pays the full 2%.",
+      "confidence": "medium"
+    },
+    "sharjah": {
+      "broker_pct": 0.02,
+      "mortgage_reg_pct": 0.0025,
+      "mortgage_reg_fixed": 0,
+      "mortgage_reg_min": 0,
+      "mortgage_reg_max": null,
+      "bank_fee_pct": 0.01,
+      "bank_fee_cap": 10000,
+      "valuation": 3000,
+      "noc_estimate": 2000,
+      "trustee": null,
+      "transfer_pct": 0.04,
+      "fixed": {
+        "admin_est": 1000
+      },
+      "confidence": "medium",
+      "str": {
+        "licence_base": 100,
+        "licence_per_bedroom": 300,
+        "licence_cap": 1200,
+        "licence_extra": 550,
+        "setup_one_off": 1300,
+        "tourism_fee_pct": 0.0,
+        "tourism_per_room_night": 0,
+        "tourism_per_unit_night": 10,
+        "status_2026": "SCTDA permit + SEDD trade licence required (licence cost unofficial, ~AED 18-20k quoted by a consultancy - not included). Whole units only. Occupancy fee AED 10 Standard / 15 Deluxe per unit-night."
+      }
+    },
+    "ajman": {
+      "broker_pct": 0.02,
+      "mortgage_reg_pct": 0.0025,
+      "mortgage_reg_fixed": 0,
+      "mortgage_reg_min": 0,
+      "mortgage_reg_max": null,
+      "bank_fee_pct": 0.01,
+      "bank_fee_cap": 10000,
+      "valuation": 3000,
+      "noc_estimate": 2000,
+      "trustee": null,
+      "transfer_pct": 0.03,
+      "transfer_pct_by_buyer": {
+        "national": 0.02,
+        "expat": 0.03,
+        "nonresident": 0.03
+      },
+      "transfer_min_by_buyer": {
+        "national": 2500,
+        "expat": 3000,
+        "nonresident": 3000
+      },
+      "fixed": {
+        "title_deed": 350
+      },
+      "confidence": "medium",
+      "str": {
+        "licence_annual": 1200,
+        "setup_one_off": 0,
+        "tourism_fee_pct": 0.0,
+        "tourism_per_room_night": 0,
+        "tourism_per_unit_night": 0,
+        "status_2026": "Ajman Dept of Tourism Development holiday-home permits since 2023; fee amounts not found - AED 1,200/yr placeholder."
+      }
+    },
+    "ras_al_khaimah": {
+      "broker_pct": 0.02,
+      "mortgage_reg_pct": 0.0025,
+      "mortgage_reg_fixed": 0,
+      "mortgage_reg_min": 0,
+      "mortgage_reg_max": null,
+      "bank_fee_pct": 0.01,
+      "bank_fee_cap": 10000,
+      "valuation": 3000,
+      "noc_estimate": 2000,
+      "trustee": null,
+      "transfer_pct": 0.02,
+      "fixed": {
+        "scheme": 200,
+        "title_deed": 200
+      },
+      "confidence": "high",
+      "str": {
+        "licence_base": 100,
+        "licence_per_bedroom": 300,
+        "licence_cap": 1200,
+        "licence_extra": 50,
+        "setup_one_off": 0,
+        "tourism_fee_pct": 0.0,
+        "tourism_per_room_night": 0,
+        "tourism_per_unit_night": 15,
+        "status_2026": "RAKTDA permits (min 3 months). Tourism Dirham rate not in official docs; AED 15/unit-night is a planning estimate."
+      }
+    },
+    "fujairah": {
+      "broker_pct": 0.02,
+      "mortgage_reg_pct": 0.0025,
+      "mortgage_reg_fixed": 0,
+      "mortgage_reg_min": 0,
+      "mortgage_reg_max": null,
+      "bank_fee_pct": 0.01,
+      "bank_fee_cap": 10000,
+      "valuation": 3000,
+      "noc_estimate": 2000,
+      "trustee": null,
+      "transfer_pct": 0.04,
+      "fixed": {
+        "admin_est": 1000
+      },
+      "confidence": "low",
+      "str": {
+        "licence_annual": 1500,
+        "setup_one_off": 0,
+        "tourism_fee_pct": 0.0,
+        "tourism_per_room_night": 0,
+        "tourism_per_unit_night": 0,
+        "status_2026": "Holiday-home rules not found in reliable sources - placeholder; confirm with the emirate tourism authority."
+      }
+    },
+    "umm_al_quwain": {
+      "broker_pct": 0.02,
+      "mortgage_reg_pct": 0.0025,
+      "mortgage_reg_fixed": 0,
+      "mortgage_reg_min": 0,
+      "mortgage_reg_max": null,
+      "bank_fee_pct": 0.01,
+      "bank_fee_cap": 10000,
+      "valuation": 3000,
+      "noc_estimate": 2000,
+      "trustee": null,
+      "transfer_pct": 0.04,
+      "fixed": {
+        "admin_est": 1000
+      },
+      "confidence": "low",
+      "str": {
+        "licence_annual": 1500,
+        "setup_one_off": 0,
+        "tourism_fee_pct": 0.0,
+        "tourism_per_room_night": 0,
+        "tourism_per_unit_night": 0,
+        "status_2026": "Holiday-home rules not found in reliable sources - placeholder; confirm with the emirate tourism authority."
+      }
+    }
+  },
+  "ltv": {
+    "national": {
+      "first_under_5m": 0.8,
+      "first_over_5m": 0.7,
+      "investment": 0.65
+    },
+    "expat": {
+      "first_under_5m": 0.8,
+      "first_over_5m": 0.65,
+      "investment": 0.6
+    },
+    "nonresident": {
+      "any": 0.5
+    },
+    "offplan_bank_typical": 0.5,
+    "dbr_max": 0.5,
+    "note": "Caps are maximums; banks may be stricter. LTV applies to the lower of price or bank valuation. Some sources quote 85% for UAE nationals' first home - confirm with the bank."
+  },
+  "mortgage": {
+    "max_tenure_years": 25,
+    "age_at_maturity": {
+      "national": 70,
+      "expat": 65,
+      "nonresident": 65
+    },
+    "dbr_max": 0.5,
+    "early_settlement_cap_pct": 0.01,
+    "early_settlement_cap_aed": 10000,
+    "rates_reference": {
+      "as_of": "2026-06/09",
+      "resident_fixed_1y": 0.0375,
+      "resident_fixed_3y": 0.0389,
+      "resident_fixed_5y": 0.0419,
+      "resident_variable": "3M EIBOR + 0.70% to 1.50% (EIBOR ~3.57-3.69% in June 2026)",
+      "nonresident_fixed_5y": 0.0479
+    },
+    "min_salary_note": "Bank-specific: about AED 8,000-15,000 (not a Central Bank rule).",
+    "sources": [
+      "https://www.useholo.com/en/blog/best-mortgage-banks-in-uae-2026-complete-comparison (2026-07-03)",
+      "https://www.huspy.com/ae/blog/monthly-mortgage-rates-uae-2026"
+    ]
+  }
+}
