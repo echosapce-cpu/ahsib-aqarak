@@ -268,6 +268,12 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <label class="check full" id="relief_wrap"><input id="relief" type="checkbox"> طبّق إعفاءات دبي 2026 لبيوت العطلات</label>
         <label id="class_wrap">تصنيف بيت العطلات (دبي)<select id="hh_class"><option value="std" selected>عادي — 10 دراهم للغرفة بالليلة</option><option value="deluxe">فاخر — 15 درهم للغرفة بالليلة</option></select></label>
         <span class="hint full" id="class_hint">التصنيف مكتوب في تصريح دائرة السياحة. رقم الفاخر من مصدر غير رسمي ويتحدّث لما يتأكد رسمياً.</span>
+      </div></details>
+      <details class="more" id="rv_box"><summary>تأكد من رقم الإيجار</summary><div class="f">
+        <label class="full" id="rent_src_w">من وين رقم الإيجار؟<select id="rent_src"><option value="told" selected>انقال لي (ما شفت مستند رسمي)</option><option value="contract">شفت عقد الإيجار المسجّل من التطبيق الرسمي</option><option value="proof">شفت العقد المسجّل + إثبات استلام الإيجار</option><option value="est">تقديري أنا (إعلانات أو مؤشر الإيجارات)</option></select></label>
+        <label id="rent_cut_w">لو طلع الدخل الفعلي أقل بـ<select id="rent_cut"><option value="0.1">10%</option><option value="0.15" selected>15%</option><option value="0.2">20%</option><option value="0.3">30%</option></select></label>
+        <span class="hint full" id="rent_cut_h">افتراض منك لاختبار أثر الفرق على نتيجتك، مو تقدير للسوق.</span>
+        <div class="full" id="rv_steps"></div>
       </div></details></fieldset>
 
       <fieldset data-tabs="portfolio"><legend>المحفظة</legend><div class="f">
@@ -386,6 +392,14 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
           <li>اطلب ميزانية رسوم الخدمة وتاريخها، واسأل هل التبريد المركزي برسوم منفصلة.</li>
           <li>في أبوظبي اسأل عن رسوم خدمة غير مدفوعة: تنتقل مع الوحدة إلى المالك الجديد.</li>
           <li>الاستوديو يؤجَّر بسرعة لكن إعادة بيعه أبطأ عادة؛ فكّر في طريقة خروجك قبل الشراء.</li>
+        </ul>
+        <h3>التحقق من الإيجار</h3><ul>
+          <li>طلب المستندات خطوة عادية في أي صفقة، والطرف المحترف عادة يوفرها بدون تردد. والقرار يُبنى على المستند الرسمي مهما كانت الثقة.</li>
+          <li>اطّلع على عقد الإيجار المسجّل من التطبيق الرسمي في إمارتك، لا من صورة أو ملف مرسل.</li>
+          <li>طابق اسم المؤجر في العقد مع اسم المالك في سند الملكية، وتأكد من المبلغ وتاريخ انتهاء العقد.</li>
+          <li>اطلب إثبات استلام الإيجار لآخر 12 شهر، وقارن الرقم بمؤشر الإيجارات الرسمي إن وُجد في إمارتك.</li>
+          <li>للإيجار القصير: ملخص الأرباح من حساب المضيف نفسه، ورقم ترخيص بيت العطلات الساري.</li>
+          <li>إذا كان الإيجار الحالي جزءاً من قرارك، اطلب ذكره في اتفاقية البيع مع رقم العقد المسجّل، واستشر مختصاً قانونياً في الصياغة.</li>
         </ul>
         <h3>التمويل</h3><ul>
           <li>كل أقساطك الشهرية معاً لا تتجاوز 50% من راتبك (قاعدة المصرف المركزي).</li>
@@ -997,18 +1011,69 @@ function compute() {
   const pfStrat = r.income[$("pf_strategy").value] ? $("pf_strategy").value : best;
   const pf = pfStrat ? E.portfolio(deal, FEES, { start_cash: n("pf_cash"), monthly_savings: n("pf_save"), rent_growth: n("pf_rg") / 100,
     appreciation: n("appreciation") / 100, strategy: pfStrat, salary: n("salary"), existing_debts: n("debts") }) : null;
-  last = { deal, r, e, lt, st, best, bi, target, alt, right, payback, stressR, aff, cvl, plan, pf, pfStrat, feesNoFurn, hoFin, payout, cheques };
+  const rv = rentCheck(deal, best, bi, target);
+  last = { deal, r, e, lt, st, best, bi, target, alt, right, payback, stressR, aff, cvl, plan, pf, pfStrat, feesNoFurn, hoFin, payout, cheques, rv };
   render(last);
 }
 
+// ---- rent verification: the tool never receives documents; it shows official steps and the effect of a lower actual income ----
+function rentSrc(deal) { return deal.status === "offplan" ? "est" : $("rent_src").value; }
+function rentCheck(deal, best, bi, target) {
+  const src = rentSrc(deal);
+  if (!bi || src === "proof") return { src, cut: null };
+  const cut = +$("rent_cut").value, d2 = JSON.parse(JSON.stringify(deal));
+  if (d2.long_term) d2.long_term.annual_rent *= 1 - cut;
+  if (d2.short_term) d2.short_term.adr *= 1 - cut;
+  const b2 = E.run(d2, FEES).income[best];
+  return { src, cut, net_yield: b2.net_yield, cash_flow: b2.cash_flow, right: E.rightPrice(d2, FEES, best, target) };
+}
+function renderRentSteps(deal) {
+  const em = deal.emirate, off = deal.status === "offplan", str = $("str_on").checked, src = rentSrc(deal);
+  $("rent_src_w").hidden = off;
+  $("rent_cut_w").hidden = $("rent_cut_h").hidden = src === "proof";
+  const li = (a) => a.filter(Boolean).map((s) => `<li>${s}</li>`).join("");
+  const index = em === "abu_dhabi" ? "مؤشر الإيجارات الرسمي من مركز أبوظبي العقاري"
+    : em === "dubai" ? "مؤشر الإيجارات الرسمي في موقع دائرة الأراضي والأملاك وتطبيق Dubai REST" : "";
+  let h = '<p class="hint">طلب المستندات خطوة عادية في أي شراء. هذه خطوات عامة لا تعني الشك في أي طرف، والأداة لا تستقبل مستندات ولا أرقام عقود: التحقق يتم بنفسك من القنوات الرسمية.</p>';
+  if (off) {
+    h += "<h3>على الخارطة</h3><ul>" + li([
+      "ما فيه إيجار حالي؛ الرقم اللي كتبته متوقع، فاختبر أثر الفرق فوق.",
+      index ? `قارنه بـ${index} لوحدات جاهزة مشابهة في نفس المنطقة.` : "قارنه بإيجارات وحدات جاهزة مشابهة في نفس المنطقة، وتأكد من الجهة المختصة في إمارتك.",
+      "تأخر التسليم يأخر أول إيجار؛ لا تبني أقساطك على إيجار من أول شهر."]) + "</ul>";
+  } else {
+    const channel = em === "abu_dhabi" ? "في أبوظبي: نظام توثيق عبر منصة داري أو تطبيق تم، ويفتحه صاحب العقد من حسابه بالهوية الرقمية (UAE PASS)"
+      : em === "dubai" ? "في دبي: نظام إيجاري عبر تطبيق Dubai REST أو موقع دائرة الأراضي والأملاك"
+      : "عقد الإيجار المصدّق من الجهة المختصة في إمارتك (الجدول في دليل المشتري)";
+    const bill = em === "abu_dhabi" ? "فاتورة الكهرباء والماء الشهرية للمستأجر (ADDC)" : em === "dubai" ? "فاتورة ديوا الشهرية للمستأجر (DEWA)" : "";
+    h += "<h3>الإيجار السنوي</h3><ul>" + li([
+      `اطلب الاطلاع على عقد الإيجار المسجّل من القناة الرسمية: ${channel}. الأفضل تشوفه من التطبيق نفسه، لا صورة أو ملف مرسل.`,
+      "طابق اسم المؤجر في العقد مع اسم المالك في سند الملكية، والمبلغ وعدد الشيكات وتاريخ انتهاء العقد مع اللي عندك.",
+      bill && `مؤشر إضافي: رسم السكن 5% من الإيجار السنوي يُضاف على ${bill}. لو اطّلعت على الفاتورة بموافقة صاحبها: الرسم الشهري × 12 ÷ 5% يعطيك الإيجار تقريباً${em === "abu_dhabi" ? " (في أبوظبي يُحسب على الأعلى بين العقد ومؤشر الإيجارات، فالرقم تقريبي)" : ""}.`,
+      "إثبات الاستلام: كشف حساب يظهر وصول دفعات الإيجار لآخر 12 شهر، وصاحبه يقدر يخفي باقي الحركات.",
+      index ? `قارن الرقم بـ${index}.` : "قارن الرقم بإيجارات وحدات مشابهة في نفس المبنى أو المنطقة.",
+      "لو الوحدة فاضية أو العقد ينتهي قريب، الإيجار رقم متوقع، والعقد الجديد قد يختلف عنه."]) + "</ul>";
+  }
+  if (str) {
+    const lic = em === "abu_dhabi" ? "في أبوظبي لازم يظهر رقم ترخيص دائرة الثقافة والسياحة في صفحة الإعلان"
+      : em === "dubai" ? "في دبي يُضاف رقم تصريح دائرة الاقتصاد والسياحة للإعلان" : "ترخيص بيت العطلات من جهة السياحة في إمارتك";
+    h += "<h3>Airbnb</h3><ul>" + li([
+      "اطلب ملخص الأرباح لآخر 12 شهر من حساب المضيف نفسه، معروض من الحساب مباشرة.",
+      `رقم الترخيص: ${lic}. تأكد إنه ساري وباسم المالك أو الشركة المشغّلة.`,
+      "الدخل السابق مرتبط بالمشغّل الحالي وتقييمات الإعلان، والتقييمات قد لا تنتقل معك، فلو تغيّر المشغّل قد يتغيّر الدخل."]) + "</ul>";
+  }
+  $("rv_steps").innerHTML = h;
+}
+
 function render(x) {
+  renderRentSteps(x.deal);
   const { deal, r, e, lt, st, best, bi } = x;
   $("relief_wrap").hidden = $("class_wrap").hidden = $("class_hint").hidden = deal.emirate !== "dubai";
   // KPIs
   $("k-cash").textContent = aed(r.cash_needed);
   $("k-cash-s").textContent = deal.financing ? `دفعة أولى ${aed(r.price - r.loan)} + رسوم ${aed(r.upfront_fees_total)}` : `السعر + رسوم ${aed(r.upfront_fees_total)} (${pct(r.fees_pct_of_price)})`;
   $("k-net").textContent = bi ? pct(bi.net_yield) : "—";
-  $("k-net-s").textContent = best === "short_term" ? "إيجار قصير (الأعلى)" : best ? "إيجار سنوي (الأعلى)" : "أدخل إيجاراً";
+  $("k-net-s").textContent = (best === "short_term" ? "إيجار قصير (الأعلى)" : best ? "إيجار سنوي (الأعلى)" : "أدخل إيجاراً") +
+    (best && (x.rv.src === "told" || x.rv.src === "est") ? " · إيجار غير موثّق" : "");
   $("k-pay").textContent = x.payback == null ? "لا تُغطّى" : x.payback.toFixed(1) + " سنة";
   $("k-right").textContent = x.right ? aed(x.right) : "—";
   $("k-right-s").textContent = x.right ? `أعلى سعر يحقق ${pct(x.target)} صافي — ${x.right < r.price ? "أقل من المعروض بـ " + aed(r.price - x.right) : "المعروض ضمنه"}` : "الهدف غير قابل للتحقيق بهذه الأرقام";
@@ -1301,6 +1366,8 @@ function renderIndicators(x) {
     const g = (x.best === "long_term" ? lt.gross_yield : st.gross_yield);
     add("", `الفرق بين العائد المعلن ${pct(g)} والحقيقي ${pct(bi.net_yield)} هو ${pct(g - bi.net_yield)} — هذا ما تأكله الرسوم والتكاليف.`);
     if (bi.cash_flow < 0) add("bad", `الدخل بعد الأقساط أقل من الصفر بـ ${aed(-bi.cash_flow / 12)} شهرياً؛ ستغطي الفرق من جيبك.`);
+    const V = x.rv;
+    if (V && V.cut != null) add(V.src === "contract" ? "" : "warn", `${V.src === "contract" ? "رقم الإيجار من عقد بدون إثبات استلام" : V.src === "est" ? "رقم الإيجار تقدير" : "رقم الإيجار غير موثّق بعد"}. لو طلع الدخل الفعلي أقل ${pct(V.cut, 0)}: العائد الصافي ${pct(bi.net_yield)} ← ${pct(V.net_yield)}، والصافي السنوي ${aed(V.cash_flow)}${V.right ? "، وسعرك الصح لنفس الهدف " + aed(V.right) : ""}. شوف "تأكد من رقم الإيجار".`);
   }
   if (x.payback != null && x.payback > deal.exit.years) add("warn", `إذا كنت تخطط للبيع خلال ${deal.exit.years} سنوات، فرسوم الشراء تحتاج ${x.payback.toFixed(1)} سنة لتتغطى من الإيجار.`);
   if (st && st.breakeven_occupancy != null && st.breakeven_occupancy > 0.6) add("warn", `الإيجار القصير يحتاج إشغالاً ${pct(st.breakeven_occupancy, 0)} لتغطية التكاليف، وهذا يعتمد على موسم قوي.`);

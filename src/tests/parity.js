@@ -7,8 +7,8 @@ for (const em of Object.keys(fees.emirates)) for (const fin of [null,{ltv:0.6,ra
 let bad=0;
 function cmp(a,b,path){ if (typeof a==='number'&&typeof b==='number'){ if(Math.abs(a-b)>1e-6*Math.max(1,Math.abs(b))){bad++;console.log('DIFF',path,a,b);} return;}
   if (a&&typeof a==='object'&&b&&typeof b==='object') for(const k of Object.keys(b)) if(k!=='assumptions'&&k!=='warnings'&&k!=='nights'&&k!=='vat_registration_required') cmp(a[k],b[k],path+'.'+k); }
-for (const c of cases){ fs.writeFileSync('/tmp/claude-0/-home-claude/cc97b60a-a8a6-57fc-a2e1-3136a6329717/scratchpad/c.json',JSON.stringify(c));
-  const py=JSON.parse(execFileSync('python3',['-c',`import json,sys;sys.path.insert(0,'scripts');import calc;print(json.dumps(calc.run(json.load(open('${'/tmp/claude-0/-home-claude/cc97b60a-a8a6-57fc-a2e1-3136a6329717/scratchpad/c.json'}')),json.load(open('scripts/fees.json'))),default=str))`]));
+for (const c of cases){ fs.writeFileSync(require('path').join(require('os').tmpdir(),'aqar-parity.json'),JSON.stringify(c));
+  const py=JSON.parse(execFileSync('python3',['-c',`import json,sys;sys.path.insert(0,'scripts');import calc;print(json.dumps(calc.run(json.load(open('${require('path').join(require('os').tmpdir(),'aqar-parity.json')}')),json.load(open('scripts/fees.json'))),default=str))`]));
   cmp(E.run(c,fees),py,c.emirate+'/'+c.buyer+'/'+(c.financing?'fin':'cash')); }
 const rp=E.rightPrice(cases[0],fees,'long_term',0.05); const chk=E.run(Object.assign({},cases[0],{price:rp}),fees).income.long_term.net_yield;
 console.log('cases',cases.length,'diffs',bad,'rightPrice',Math.round(rp),'yield at rp',chk.toFixed(5));

@@ -36,6 +36,16 @@ with sync_playwright() as p:
     assert all(x.get("uid") for x in posts)
     assert pg.locator("#rate-share").is_visible(), "share CTA after 5 stars"
     assert pg.text_content("#rev-msg").startswith("شكراً") and "وصلت" in pg.text_content("#fb-msg")
+    # rent verification: unverified rent shows the lower-income effect; proof hides it; no document data is sent
+    pg.goto("file://" + page_path + "?v=3#ready"); pg.wait_for_timeout(500)
+    pg.select_option("#emirate", "abu_dhabi"); pg.fill("#price", "1000000"); pg.fill("#annual_rent", "70000"); pg.wait_for_timeout(500)
+    ind = pg.text_content("#ind"); assert "غير موثّق" in ind and "← " in ind, ind
+    assert "غير موثّق" in pg.text_content("#k-net-s")
+    assert "داري" in pg.inner_html("#rv_steps") and "ADDC" in pg.inner_html("#rv_steps")
+    pg.click("#rv_box summary"); pg.select_option("#rent_src", "proof"); pg.dispatch_event("#rent_src", "input"); pg.wait_for_timeout(400)
+    assert "غير موثّق" not in pg.text_content("#ind") and pg.locator("#rent_cut_w").is_hidden()
+    pg.select_option("#emirate", "dubai"); pg.dispatch_event("#emirate", "input"); pg.wait_for_timeout(400)
+    assert "إيجاري" in pg.inner_html("#rv_steps")
     assert not errs, errs
     pg.screenshot(path=sys.argv[2], full_page=False)
     b.close(); print("E2E PASS")
