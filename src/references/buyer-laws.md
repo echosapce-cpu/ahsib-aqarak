@@ -39,6 +39,23 @@
 
 **تنبيه عملي يظهر في الأداة:** قبل الشراء من وحدة مستعملة اسأل عن رسوم الخدمة غير المدفوعة — في أبوظبي تنتقل مع الوحدة إليك.
 
+## عقار فيه مستأجر (الإخلاء) — يظهر في دليل المشتري
+| الحالة | دبي | أبوظبي |
+|---|---|---|
+| بيع عقار مؤجر | المادة 28 من القانون 26/2007: انتقال الملكية لا ينهي العقد. | لم نجد نصاً مؤكداً؛ الأداة تنصح باعتبار العقد مستمراً وسؤال مختص. |
+| إخلاء بعد انتهاء العقد | المادة 25(2) المعدلة بالقانون 33/2008: أسباب محددة (سكن المالك أو قريب درجة أولى بلا عقار مناسب آخر، البيع، الهدم/الترميم...) + إشعار 12 شهراً بكاتب العدل أو البريد المسجّل. المادة 26: لا يؤجر لغيره سنتين بعد الاسترداد للسكن. | القانون 20/2006 المعدل بالقانون 4/2010، المادة 20(3): إشعار قبل الانتهاء بشهرين للسكني؛ بدون إشعار يتجدد بنفس الشروط. |
+| عدم الدفع | المادة 25(1)(أ): إشعار 30 يوماً بكاتب العدل/بريد مسجل ثم مركز فض المنازعات؛ رسم الإخلاء 3.5% (500–20,000) سبتمبر 2026؛ المادة 34 تمنع الإخراج بالقوة. | إنذار 21 يوماً للسكني، ثم لجنة فض المنازعات الإيجارية في دائرة القضاء؛ العقد لازم مسجل في توثيق. |
+| زيادة الإيجار | مؤشر الإيجارات الذكي + إشعار 90 يوماً قبل الانتهاء (توضيح دائرة الأراضي، فبراير 2025). | تجميد الزيادات من مركز أبوظبي العقاري منذ يونيو 2026 حتى إشعار آخر (بدون رقم قرار منشور). |
+
+مصادر هذا القسم:
+- Khaleej Times — evict to sell, Art. 25(2)(d) & 28 (2026-09-20): https://www.khaleejtimes.com/uae/legal/can-landlord-dubai-evict-sell-property-uae-law
+- Khaleej Times — personal use, Art. 25(2)(c) & 26 (2026-09-13): https://www.khaleejtimes.com/uae/legal/dubai-landlord-villa-personal-use-process-requirements
+- fäm Properties — non-payment, Art. 25(1)(a), 31, 34, RDC fees (2026-09-18): https://famproperties.com/blog/tenant-not-paying-rent-dubai-eviction
+- Cushman & Wakefield — DLD 90-day notice (2025-02-17): https://www.cushwake.ae/en/news/90-day-notice-must-for-rent-hikes-even-under-smart-rental-index-dld-clarifies
+- Mondaq — Abu Dhabi Law 20/2006 amendments, Art. 20(3) (2016-08-18): https://www.mondaq.com/landlord-tenant-leases/520192/tenancy-law-of-abu-dhabi-and-its-amendments
+- RealKeyper — Abu Dhabi eviction notice, 21-day non-payment, ADJD committee (reviewed 2026-10-16): https://www.realkeyper.com/blogs/eviction-notice-abu-dhabi
+- Baker McKenzie — Abu Dhabi rent freeze (2026-06-08): https://www.bakermckenzie.com/en/insight/publications/2026/06/united-arab-emirates-abu-dhabi-freezes-rental-increases
+
 ## المصادر
 - Kayrouz & Associates — Dubai Property Law Guide (2026-01-29): https://www.kayrouzandassociates.com/insights/dubai-property-law-guide-for-investors-and-developers
 - Trowers & Hamlins — Four key decisions reshaping Abu Dhabi (2026-04-22): https://www.trowers.com/insights/2026/april/four-key-decisions-reshaping-abu-dhabi
