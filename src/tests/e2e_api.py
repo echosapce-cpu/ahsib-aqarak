@@ -22,7 +22,7 @@ with sync_playwright() as p:
     pg.fill("#price", "800000"); pg.wait_for_timeout(500)
     pg.goto("file://" + page_path + "#finance"); pg.wait_for_timeout(500)
     pg.fill("#price", "800000")
-    for f, v in (("salary", "30000"), ("debts", "2000"), ("age", "35")):
+    for f, v in (("salary", "30000"), ("debts", "2000"), ("age", "35"), ("ext_debts", "3333")):
         pg.evaluate("([f,v])=>{const e=document.getElementById(f); if(e){e.value=v; e.dispatchEvent(new Event('input',{bubbles:true}));}}", [f, v])
     pg.wait_for_timeout(7500)
     pg.goto("file://" + page_path + "?v=2#ready"); pg.wait_for_timeout(600); assert pg.locator("#p-rate").is_hidden(), "rate panel before result"; pg.fill("#price", "900000"); pg.wait_for_timeout(600); assert pg.locator("#p-rate").is_visible(), "rate panel not shown"
@@ -32,7 +32,7 @@ with sync_playwright() as p:
     kinds = [x["t"] for x in posts]; print("posts:", kinds, "errors:", errs)
     for k in ("use", "event", "review", "feedback"): assert k in kinds, k
     blob = json.dumps(posts)
-    assert "30000" not in blob and '"salary"' not in blob and '"age"' not in blob and '"debts"' not in blob, "private field leaked"
+    assert "3333" not in blob and "ext_debts" not in blob and "30000" not in blob and '"salary"' not in blob and '"age"' not in blob and '"debts"' not in blob, "private field leaked"
     assert all(x.get("uid") for x in posts)
     assert pg.locator("#rate-share").is_visible(), "share CTA after 5 stars"
     assert pg.text_content("#rev-msg").startswith("شكراً") and "وصلت" in pg.text_content("#fb-msg")

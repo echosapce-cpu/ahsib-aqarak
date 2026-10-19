@@ -232,7 +232,9 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <fieldset data-tabs="ready offplan finance portfolio"><legend>التمويل</legend><div class="f">
         <label class="check full"><input id="fin_on" type="checkbox"> <span id="fin_lbl">أقساط من البنك (رهن عقاري)</span></label>
         <label>الراتب الشهري<input id="salary" type="number" min="0" step="500" placeholder="اختياري"></label>
-        <label>أقساط ديون حالية (شهرياً)<input id="debts" type="number" min="0" step="100" placeholder="0"></label>
+        <label>أقساط ديون حالية (شهرياً)<input id="debts" type="number" min="0" step="100" placeholder="قروض وبطاقات"></label>
+        <span class="hint full">البنك يحسب: القروض، والبطاقات (5% من حدّها حتى لو ما استخدمتها)، والتقسيط بأنواعه، وبعض البنوك تحسب إيجارك الحالي. وما يحسب: المصاريف والمدارس ومصروف الأهل. الحد 50% من الراتب الإجمالي، وبعض البنوك 40–45%.</span>
+        <label>التزامات ما يحسبها البنك (شهرياً)<input id="ext_debts" type="number" min="0" step="100" placeholder="مصروف أهل، مدارس، جمعية"></label>
       </div>
       <details class="more"><summary>تفاصيل التمويل</summary><div class="f">
         <label>المشتري<select id="buyer"><option value="national">مواطن</option><option value="expat">مقيم</option><option value="nonresident">غير مقيم</option></select></label>
@@ -249,10 +251,15 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <label class="check"><input id="str_on" type="checkbox"> قارن مع Airbnb</label>
         <label>سعر الليلة (درهم)<input id="adr" type="number" min="0" step="10" placeholder="مثال: 450"></label>
         <label>نسبة الإشغال %<input id="occupancy" type="number" min="5" max="95" step="1" value="65"></label>
+        <label id="lt_cheques_w">الإيجار السنوي يوصلك على<select id="lt_cheques"><option value="1">شيك واحد</option><option value="2">شيكين</option><option value="4" selected>4 شيكات</option><option value="6">6 شيكات</option><option value="12">12 شيك (شهري)</option></select></label>
+        <label id="lt_mgr_w">الإيجار السنوي عن طريق<select id="lt_mgr"><option value="leasing" selected>وسيط يأجّر (عمولة مرة بالسنة)</option><option value="full">شركة تدير العقار كامل</option><option value="none">أأجّر بنفسي</option></select></label>
+        <label id="str_op_w">مين يدير الـ Airbnb؟<select id="str_op"><option value="company" selected>شركة بيوت عطلات مرخّصة</option><option value="self">أديره بنفسي (رخصة باسمي)</option></select></label>
+        <label id="str_sc_w">رسوم الخدمات السنوية<select id="str_sc"><option value="self" selected>أدفعها أنا بنفسي (المعتاد)</option><option value="deduct">باتفاق: الشركة تخصمها من دخلي الشهري</option></select></label>
+        <span class="hint full" id="op_hint"></span>
       </div>
       <details class="more"><summary>تفاصيل الإيجار</summary><div class="f">
         <label>شغور متوقع %<input id="vacancy" type="number" min="0" max="50" step="1" value="5"></label>
-        <label>شركة إدارة Airbnb %<input id="management_pct" type="number" min="0" max="40" step="1" value="20"></label>
+        <label>رسوم شركة بيوت العطلات %<input id="management_pct" type="number" min="0" max="40" step="1" value="20"></label>
         <label>عمولة المنصة %<input id="platform_pct" type="number" min="0" max="20" step="0.5" value="15"></label>
         <label>تنظيف لكل حجز<input id="cleaning_per_stay" type="number" min="0" step="10" value="150"></label>
         <label>متوسط مدة الحجز (ليالي)<input id="avg_stay" type="number" min="1" max="30" value="3"></label>
@@ -320,6 +327,9 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
           <h3>ثلاث حالات</h3><div class="scen" id="scen"></div>
         </div>
       </section>
+
+      <section class="panel" id="p-cash" data-tabs="ready offplan" hidden><h2>كم يوصل حسابك؟</h2>
+        <div id="cash-st"></div><div id="cash-lt"></div></section>
 
       <section class="panel" id="p-pay" data-tabs="ready finance"><h2>كاش أو أقساط</h2><div class="tbl"><table id="t-pay"></table></div>
         <div id="afford"></div></section>
@@ -633,6 +643,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       const lt = merge({ vacancy: 0.05, leasing_fee_pct: 0.05 }, d.long_term);
       const rent = lt.annual_rent, eff = rent * (1 - lt.vacancy);
       const costs = Object.assign({}, fixedOwner, { leasing_fee: rent * lt.leasing_fee_pct });
+      if (lt.management_pct) costs.management = eff * lt.management_pct; // full property management (optional)
       const net = eff - sum(costs), setup = up.holiday_home_setup || 0;
       res.income.long_term = { gross_rent: rent, effective_rent: eff, costs, net, gross_yield: rent / price,
         net_yield: net / (allIn - setup), cash_flow: net - debt, cash_on_cash: (net - debt) / (cashNeeded - setup), cash_needed: cashNeeded - setup };
@@ -695,7 +706,16 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     return r === 0 ? pay * n : (pay * (1 - Math.pow(1 + r, -n))) / r;
   }
   // Bank affordability under the CBUAE debt-burden cap (all monthly debt <= 50% of income).
-  function affordability(deal, fees, salary, existingDebts, age) {
+  // Shortest and longest tenure the bank would accept for this loan: the longest is capped by law/age,
+  // the shortest is the first year count whose instalment still fits the 50% debt-burden room.
+  function tenureRange(loan, rate, room, maxYears) {
+    if (!(loan > 0) || maxYears < 1) return null;
+    const at = (y) => { const p = pmt(loan, rate, y); return { years: y, payment: p, total_interest: p * y * 12 - loan, total_paid: p * y * 12 }; };
+    let shortest = null;
+    for (let y = 1; y <= maxYears; y++) { const a = at(y); if (a.payment <= room + 1e-6) { shortest = a; break; } }
+    return { ok: !!shortest, shortest, longest: at(maxYears) };
+  }
+  function affordability(deal, fees, salary, existingDebts, age, external) {
     const fin = deal.financing;
     if (!fin || !salary) return null;
     const m = fees.mortgage, ageLimit = m.age_at_maturity[deal.buyer || "national"];
@@ -713,7 +733,11 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       salary_left: salary - pay - (existingDebts || 0), years_used: yrs, max_years: maxYears,
       years_capped: fin.years > maxYears,
       total_interest: pay * yrs * 12 - r.loan,
-      early_settlement_fee_cap: Math.min(r.loan * m.early_settlement_cap_pct, m.early_settlement_cap_aed) };
+      early_settlement_fee_cap: Math.min(r.loan * m.early_settlement_cap_pct, m.early_settlement_cap_aed),
+      range: tenureRange(r.loan, fin.rate, room, maxYears),
+      // commitments the bank does not see (rent, family support, private loans): not in the 50% rule, but real
+      external: external || 0, real_left: salary - pay - (existingDebts || 0) - (external || 0),
+      real_ratio: (pay + (existingDebts || 0) + (external || 0)) / salary };
   }
 
   // Cash vs mortgage: which costs less and which grows the money faster, same deal.
@@ -846,7 +870,39 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     return { first_unit_need: unitAt(0, true, !fin).need, snapshots: snaps, blocked_by_income: blockedByIncome > 0 };
   }
 
-  const api = { run, rightPrice, stress, portfolio, affordability, cashVsLoan, paymentPlan, loanFromPayment, pmt, balanceAfter, irr, strLicence };
+  // What actually lands in the owner's bank account from short-term rental, month by month (average month).
+  // operator "company": a licensed holiday-home operator collects bookings and deducts the platform fee, its own fee,
+  // cleaning, guest consumables and the tourism fee it remits; utilities, the permit, service charge, maintenance and
+  // insurance stay with the owner (market practice, 2026). deductSc = special agreement: it also deducts the service
+  // charge, chiller and utilities from the payout.
+  // operator "self": the platform pays the owner directly; the owner pays every cost himself.
+  function strPayout(res, opts) {
+    const st = res.income.short_term; if (!st) return null;
+    const c = st.costs, o = Object.assign({ operator: "company", deductSc: false }, opts);
+    const fixed = (c.service_charge || 0) + (c.chiller || 0);
+    const run12 = (k) => (c[k] || 0);
+    const byOperator = o.operator === "company"
+      ? run12("platform") + run12("management") + run12("tourism_fees") + run12("cleaning_net") + run12("consumables") + (o.deductSc ? fixed + run12("utilities") : 0)
+      : run12("platform");
+    const deposit = st.gross - byOperator;
+    const ownerPays = sum(c) - byOperator;
+    const debt = res.annual_debt_service;
+    return { operator: o.operator, deduct_sc: o.operator === "company" && o.deductSc,
+      gross_month: st.gross / 12, deducted_month: byOperator / 12, deposit_month: deposit / 12, deposit_year: deposit,
+      owner_pays_year: ownerPays, owner_pays_month: ownerPays / 12, sc_by_owner_year: o.operator === "company" && o.deductSc ? 0 : fixed, utilities_year: run12("utilities"), licence_year: run12("licence"),
+      mortgage_month: debt / 12, left_month: (deposit - ownerPays - debt) / 12, left_year: deposit - ownerPays - debt };
+  }
+  // Annual rent paid in cheques: amount per cheque, months of instalments each cheque must cover, shortfall.
+  function rentCheques(res, cheques) {
+    const lt = res.income.long_term; if (!lt) return null;
+    const n = Math.max(1, Math.round(cheques || 1)), per = lt.gross_rent / n, months = 12 / n;
+    const debtPer = res.monthly_payment * months;
+    const ownerYear = sum(lt.costs);
+    return { cheques: n, per_cheque: per, months_covered: months, mortgage_per_period: debtPer,
+      after_mortgage_per_cheque: per - debtPer, net_year: lt.cash_flow, net_month: lt.cash_flow / 12, owner_costs_year: ownerYear };
+  }
+
+  const api = { strPayout, rentCheques, tenureRange, run, rightPrice, stress, portfolio, affordability, cashVsLoan, paymentPlan, loanFromPayment, pmt, balanceAfter, irr, strLicence };
   if (typeof module !== "undefined") module.exports = api; else root.AqarEngine = api;
 })(this);
 
@@ -889,8 +945,9 @@ function readDeal() {
     buyer: $("buyer").value, first_home: $("first_home").checked, size_sqft: n("size_sqft") || [450, 750, 1100, 1600, 2500][+$("bedrooms").value], bedrooms: +$("bedrooms").value,
     service_charge_psf: n("service_charge_psf"), chiller_monthly: n("chiller_monthly"), size_estimated: !n("size_sqft"),
     service_charge_annual: $("sc_mode").value === "none" ? 0 : $("sc_mode").value === "total" ? n("sc_total") : null, broker: $("broker").checked, furnishing: n("furnishing"),
-    long_term: n("annual_rent") > 0 ? { annual_rent: n("annual_rent"), vacancy: n("vacancy") / 100 } : null,
-    short_term: $("str_on").checked && n("adr") > 0 ? { adr: n("adr"), occupancy: n("occupancy") / 100, management_pct: n("management_pct") / 100,
+    long_term: n("annual_rent") > 0 ? { annual_rent: n("annual_rent"), vacancy: n("vacancy") / 100,
+      leasing_fee_pct: $("lt_mgr").value === "none" ? 0 : 0.05, management_pct: $("lt_mgr").value === "full" ? 0.05 : 0 } : null,
+    short_term: $("str_on").checked && n("adr") > 0 ? { adr: n("adr"), occupancy: n("occupancy") / 100, management_pct: $("str_op").value === "self" ? 0 : n("management_pct") / 100,
       platform_pct: n("platform_pct") / 100, cleaning_per_stay: n("cleaning_per_stay"), avg_stay: Math.max(n("avg_stay"), 1), utilities_monthly: n("utilities_monthly") } : null,
     exit: { years: Math.max(Math.round(n("exit_years")), 1), appreciation: n("appreciation") / 100 }, relief: $("relief").checked };
   if ($("fin_on").checked && d.status !== "offplan") d.financing = { ltv: n("ltv") / 100, rate: n("rate_pct") / 100, years: Math.max(Math.round(n("years")), 1) };
@@ -913,7 +970,9 @@ function compute() {
   const feesNoFurn = r.upfront_fees_total - (r.upfront_fees.furnishing || 0);
   const payback = bi && bi.net > 0 ? feesNoFurn / bi.net : null;
   const stressR = E.stress(deal, FEES);
-  const aff = deal.financing ? E.affordability(deal, FEES, n("salary"), n("debts"), n("age")) : null;
+  const aff = deal.financing ? E.affordability(deal, FEES, n("salary"), n("debts"), n("age"), n("ext_debts")) : null;
+  const payout = E.strPayout(r, { operator: $("str_op").value, deductSc: $("str_sc").value === "deduct" });
+  const cheques = E.rentCheques(r, +$("lt_cheques").value);
   const cvl = deal.financing ? E.cashVsLoan(deal, FEES, best) : null;
   const plan = deal.status === "offplan" ? E.paymentPlan(deal, FEES, { down_pct: n("pp_d") / 100, monthly_pct: n("pp_mo") / 100,
     annual_pct: n("pp_a") / 100, construction_months: Math.round(n("pp_m")), post_pct: n("pp_p") / 100,
@@ -934,7 +993,7 @@ function compute() {
   const pfStrat = r.income[$("pf_strategy").value] ? $("pf_strategy").value : best;
   const pf = pfStrat ? E.portfolio(deal, FEES, { start_cash: n("pf_cash"), monthly_savings: n("pf_save"), rent_growth: n("pf_rg") / 100,
     appreciation: n("appreciation") / 100, strategy: pfStrat, salary: n("salary"), existing_debts: n("debts") }) : null;
-  last = { deal, r, e, lt, st, best, bi, target, alt, right, payback, stressR, aff, cvl, plan, pf, pfStrat, feesNoFurn, hoFin };
+  last = { deal, r, e, lt, st, best, bi, target, alt, right, payback, stressR, aff, cvl, plan, pf, pfStrat, feesNoFurn, hoFin, payout, cheques };
   render(last);
 }
 
@@ -999,7 +1058,18 @@ function render(x) {
       (a.ok ? "" : `<li class="warn">تحتاج تخفض أقساطك الحالية بـ ${aed(a.debt_to_clear)} شهرياً، أو تطيل المدة، أو تزيد الدفعة الأولى.</li>`) +
       `<li>أعلى قسط يسمح فيه راتبك: ${aed(a.max_payment)} — أعلى قرض: ${aed(a.max_loan)} — أعلى سعر تقريباً: ${aed(a.max_price)}.</li>` +
       (a.years_capped ? `<li class="warn">المدة قُصرت إلى ${a.years_used} سنة بسبب العمر عند نهاية القرض.</li>` : "") +
-      `<li>رسوم السداد المبكر بحد أقصى ${aed(a.early_settlement_fee_cap)}.</li></ul>`;
+      (a.external ? `<li class="${a.real_left < 0 ? "bad" : a.real_left < n("salary") * 0.2 ? "warn" : "good"}">البنك ما يحسب التزاماتك الثانية (${aed(a.external)}). بعدها يبقى لك فعلياً ${aed(a.real_left)} شهرياً (${pct(a.real_ratio, 0)} من راتبك رايح التزامات).</li>` : "") +
+      `<li>رسوم السداد المبكر بحد أقصى ${aed(a.early_settlement_fee_cap)}.</li></ul>` +
+      (a.range ? (a.range.ok
+        ? `<h3>المدة اللي يوافق عليها البنك: من ${a.range.shortest.years} إلى ${a.range.longest.years} سنة</h3><div class="tbl"><table>` +
+          head(["", "أقصر مدة", "أطول مدة"]) +
+          row(["المدة (سنوات)", String(a.range.shortest.years), String(a.range.longest.years)]) +
+          row(["القسط الشهري", aed(a.range.shortest.payment), aed(a.range.longest.payment)]) +
+          row(["من راتبك (مع ديونك)", pct((a.range.shortest.payment + a.existing_debts) / n("salary"), 0), pct((a.range.longest.payment + a.existing_debts) / n("salary"), 0)]) +
+          row(["فوائد البنك الإجمالية", aed(a.range.shortest.total_interest), aed(a.range.longest.total_interest)]) +
+          row(["تدفع للبنك بالكامل", aed(a.range.shortest.total_paid), aed(a.range.longest.total_paid)], "total") +
+          `</table></div><p class="hint">قرض ${aed(r.loan)} بفائدة ${pct(deal.financing.rate, 2)}. أقصر مدة = أعلى قسط يسمح فيه راتبك وأقل فوائد. أطول مدة = حدّ القانون أو عمرك، وأقل قسط وأكثر فوائد. الفرق في الفوائد: <b>${aed(a.range.longest.total_interest - a.range.shortest.total_interest)}</b>.</p>`
+        : `<p class="hint">حتى بأطول مدة (${a.range.longest.years} سنة) القسط ${aed(a.range.longest.payment)} أعلى من المسموح (${aed(a.max_payment)}).</p>`) : "");
   } else if (deal.financing) af = '<p class="hint">أدخل راتبك الشهري لمعرفة هل البنك بيمولك.</p>';
   $("afford").innerHTML = af;
   // stress
@@ -1029,6 +1099,7 @@ function render(x) {
       row(["دخلك السنوي بعد الأقساط", ...ys.map((y) => aed(P[y].income_year))]) +
       row(["الدخل الشهري لو خلصت القروض", ...ys.map((y) => aed(P[y].income_month_debt_free))]);
   }
+  renderCash(x);
   renderPlan(x);
   renderCharts(x);
   renderSummary(x);
@@ -1039,6 +1110,40 @@ function render(x) {
   bumpUsage();
 }
 
+function renderCash(x) {
+  const P = x.payout, C = x.cheques;
+  $("p-cash").hidden = !P && !C;
+  $("str_op_w").hidden = $("str_sc_w").hidden = !$("str_on").checked;
+  $("str_sc_w").hidden = !$("str_on").checked || $("str_op").value === "self";
+  $("management_pct").disabled = $("str_op").value === "self";
+  $("lt_cheques_w").hidden = $("lt_mgr_w").hidden = !(n("annual_rent") > 0);
+  $("op_hint").textContent = $("str_on").checked ? ($("str_op").value === "self"
+    ? "تدير بنفسك: تحتاج رخصة بيت عطلات باسمك من دائرة السياحة في إمارتك، والمنصة تحوّل لك مباشرة وأنت تدفع كل التكاليف."
+    : "الشركة لازم تكون مرخّصة من دائرة السياحة في إمارتك. رسومها عادة 15% إلى 25% (تقدير سوق 2026). اسألهم: النسبة من أي مبلغ، قبل عمولة المنصة أو بعدها؟ ومتى يحوّلون لك؟ المعتاد إن رسوم الخدمات والكهرباء والتبريد والرخصة على المالك، إلا لو اتفقتوا كتابياً إنهم يخصمونها.") : "";
+  let h = "";
+  if (P) {
+    const who = P.operator === "company" ? "الشركة" : "المنصة";
+    h += `<h3>Airbnb: كم ينزل في حسابك (متوسط الشهر)</h3><div class="tbl"><table>` + head(["", "شهرياً", "سنوياً"]) +
+      row(["دخل الحجوزات", aed(P.gross_month), aed(P.gross_month * 12)]) +
+      row([P.operator === "company" ? "تخصمه الشركة ¹" : "عمولة المنصة", "− " + aed(P.deducted_month), "− " + aed(P.deducted_month * 12)]) +
+      row([`تحوّل لك ${who}`, aed(P.deposit_month), aed(P.deposit_year)], "total") +
+      (P.owner_pays_year ? row(["تدفع أنت ²", "− " + aed(P.owner_pays_month), "− " + aed(P.owner_pays_year)]) : "") +
+      (P.mortgage_month ? row(["قسط البنك", "− " + aed(P.mortgage_month), "− " + aed(P.mortgage_month * 12)]) : "") +
+      row(["يبقى لك فعلياً", aed(P.left_month), aed(P.left_year)], "total") + `</table></div>` +
+      `<p class="hint">¹ ${P.operator === "company" ? "عمولة المنصة، رسوم الشركة، التنظيف، مستلزمات الضيوف، رسوم السياحة" + (P.deduct_sc ? "، والخدمات والتبريد والكهرباء باتفاقكم" : "") : "المنصة تخصم عمولتها وتحوّل لك الباقي"}.<br>² ${P.operator === "company" ? (P.deduct_sc ? "رخصة بيت العطلات، الصيانة، التأمين" : "رسوم الخدمات، الكهرباء والتبريد، رخصة بيت العطلات، الصيانة، التأمين") : "التنظيف، الكهرباء والتبريد، رسوم السياحة، الرخصة، رسوم الخدمات، الصيانة، التأمين"}.<br>هذا متوسط. الشتاء أعلى والصيف أقل، فجنّب من أشهر الشتاء للصيف.${P.sc_by_owner_year ? ` رسوم الخدمات (${aed(P.sc_by_owner_year)} بالسنة) غالباً تنطلب مقدماً أو كل 3 شهور، مب شهرياً.` : ""}</p>`;
+  }
+  $("cash-st").innerHTML = h; h = "";
+  if (C) {
+    h += `<h3>الإيجار السنوي: ${C.cheques === 1 ? "شيك واحد بالسنة" : C.cheques + " شيكات بالسنة"}</h3><div class="tbl"><table>` + head(["", "المبلغ"]) +
+      row(["كل شيك", aed(C.per_cheque)]) +
+      (C.mortgage_per_period ? row([`أقساط البنك اللي لازم يغطيها (${C.months_covered} ${C.months_covered === 1 ? "شهر" : "شهور"})`, "− " + aed(C.mortgage_per_period)]) + row(["يبقى من كل شيك", aed(C.after_mortgage_per_cheque)], "total") : "") +
+      row(["تكاليف المالك بالسنة (خدمات، صيانة، تأمين، عمولة)", "− " + aed(C.owner_costs_year)]) +
+      row(["الصافي في جيبك بالسنة", aed(C.net_year)], "total") + row(["يعني شهرياً", aed(C.net_month)]) + `</table></div>` +
+      (C.cheques < 12 && C.mortgage_per_period ? `<p class="hint">القسط شهري والشيك كل ${C.months_covered} شهور: أول ما يصرف الشيك، جنّب ${aed(C.mortgage_per_period)} للأقساط اللي بعده.</p>` : "") +
+      (C.cheques === 1 ? '<p class="hint">شيك واحد يعطيك سعر أفضل غالباً، بس لو المستأجر طلع بنص السنة تتأخر عليك فلوس.</p>' : "");
+  }
+  $("cash-lt").innerHTML = h;
+}
 const ym = (v) => { if (!v) return "—"; const [y, m] = v.split("-"); return ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"][+m - 1] + " " + y; };
 function renderPlan(x) {
   const P = x.plan, off = x.deal.status === "offplan";
@@ -1165,9 +1270,12 @@ function renderSummary(x) {
   } else {
     L.push(`تحتاج <b>${aed(r.cash_needed)}</b> الآن، منها <b>${aed(r.upfront_fees_total)}</b> رسوم وتكاليف فوق السعر.`);
     if (deal.financing) L.push(`قسط البنك <b>${aed(r.monthly_payment)}</b> شهرياً${x.aff ? (x.aff.ok ? "، وراتبك يسمح به." : "، و<b>راتبك لا يسمح به</b> حسب قاعدة 50%.") : "."}`);
+    if (x.aff && x.aff.range && x.aff.range.ok) L.push(`البنك يوافق من <b>${x.aff.range.shortest.years}</b> إلى <b>${x.aff.range.longest.years} سنة</b>: القسط من ${aed(x.aff.range.longest.payment)} إلى ${aed(x.aff.range.shortest.payment)}، والفوائد من ${aed(x.aff.range.shortest.total_interest)} إلى ${aed(x.aff.range.longest.total_interest)}.`);
+    if (x.aff && x.aff.external) L.push(`بعد التزاماتك اللي ما يحسبها البنك يبقى لك <b>${aed(x.aff.real_left)}</b> شهرياً${x.aff.real_left < 0 ? " — <b>ما يكفي</b>" : ""}.`);
   }
   L.push(sc > 0 ? `رسوم الخدمة السنوية <b>${aed(sc)}</b> (${aed(sc / 12)} شهرياً) على المالك${m === "est" ? " — تقدير، اطلب الرقم الفعلي" : ""}.` : "العقار بدون رسوم خدمة حسب إدخالك.");
   if (bi) L.push(`${where}: يبقى في جيبك <b>${aed(bi.cash_flow / 12)}</b> شهرياً، والعائد الحقيقي <b>${pct(bi.net_yield)}</b>.`);
+  if (x.payout) L.push(`من Airbnb تحوّل لك ${x.payout.operator === "company" ? "الشركة" : "المنصة"} حوالي <b>${aed(x.payout.deposit_month)}</b> بالشهر.`);
   if (x.payback) L.push(`الرسوم تحتاج <b>${x.payback.toFixed(1)} سنة</b> إيجار لتتغطى.`);
   if (x.right) L.push(`لتحقيق ${pct(x.target)} صافي، سعرك الصح <b>${aed(x.right)}</b>${x.right < r.price ? " — أقل من المعروض." : "."}`);
   $("summary").innerHTML = L.map((l) => `<div>• ${l}</div>`).join("");
@@ -1526,7 +1634,7 @@ $("tabs").addEventListener("click", (ev) => { const t = ev.target.closest("butto
 const NOTRACK_KEY = "aqar_no_track";
 try { $("no_track").checked = localStorage.getItem(NOTRACK_KEY) === "1"; } catch {}
 $("no_track").addEventListener("change", () => { try { localStorage.setItem(NOTRACK_KEY, $("no_track").checked ? "1" : "0"); } catch {} });
-const PRIVATE_FIELDS = new Set(["salary", "debts", "age"]);
+const PRIVATE_FIELDS = new Set(["salary", "debts", "age", "ext_debts"]);
 const edited = {};
 let trackTimer = null, lastTrack = 0, tabVisits = {};
 function bucket(p) { const b = [500e3, 750e3, 1e6, 1.5e6, 2e6, 3e6, 5e6]; const i = b.findIndex((v) => p < v); return i < 0 ? "5M+" : (i === 0 ? "<500K" : (b[i - 1] / 1e3) + "K-" + (b[i] / 1e3) + "K"); }

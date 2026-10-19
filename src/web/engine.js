@@ -126,6 +126,7 @@
       const lt = merge({ vacancy: 0.05, leasing_fee_pct: 0.05 }, d.long_term);
       const rent = lt.annual_rent, eff = rent * (1 - lt.vacancy);
       const costs = Object.assign({}, fixedOwner, { leasing_fee: rent * lt.leasing_fee_pct });
+      if (lt.management_pct) costs.management = eff * lt.management_pct; // full property management (optional)
       const net = eff - sum(costs), setup = up.holiday_home_setup || 0;
       res.income.long_term = { gross_rent: rent, effective_rent: eff, costs, net, gross_yield: rent / price,
         net_yield: net / (allIn - setup), cash_flow: net - debt, cash_on_cash: (net - debt) / (cashNeeded - setup), cash_needed: cashNeeded - setup };
@@ -188,7 +189,16 @@
     return r === 0 ? pay * n : (pay * (1 - Math.pow(1 + r, -n))) / r;
   }
   // Bank affordability under the CBUAE debt-burden cap (all monthly debt <= 50% of income).
-  function affordability(deal, fees, salary, existingDebts, age) {
+  // Shortest and longest tenure the bank would accept for this loan: the longest is capped by law/age,
+  // the shortest is the first year count whose instalment still fits the 50% debt-burden room.
+  function tenureRange(loan, rate, room, maxYears) {
+    if (!(loan > 0) || maxYears < 1) return null;
+    const at = (y) => { const p = pmt(loan, rate, y); return { years: y, payment: p, total_interest: p * y * 12 - loan, total_paid: p * y * 12 }; };
+    let shortest = null;
+    for (let y = 1; y <= maxYears; y++) { const a = at(y); if (a.payment <= room + 1e-6) { shortest = a; break; } }
+    return { ok: !!shortest, shortest, longest: at(maxYears) };
+  }
+  function affordability(deal, fees, salary, existingDebts, age, external) {
     const fin = deal.financing;
     if (!fin || !salary) return null;
     const m = fees.mortgage, ageLimit = m.age_at_maturity[deal.buyer || "national"];
@@ -206,7 +216,11 @@
       salary_left: salary - pay - (existingDebts || 0), years_used: yrs, max_years: maxYears,
       years_capped: fin.years > maxYears,
       total_interest: pay * yrs * 12 - r.loan,
-      early_settlement_fee_cap: Math.min(r.loan * m.early_settlement_cap_pct, m.early_settlement_cap_aed) };
+      early_settlement_fee_cap: Math.min(r.loan * m.early_settlement_cap_pct, m.early_settlement_cap_aed),
+      range: tenureRange(r.loan, fin.rate, room, maxYears),
+      // commitments the bank does not see (rent, family support, private loans): not in the 50% rule, but real
+      external: external || 0, real_left: salary - pay - (existingDebts || 0) - (external || 0),
+      real_ratio: (pay + (existingDebts || 0) + (external || 0)) / salary };
   }
 
   // Cash vs mortgage: which costs less and which grows the money faster, same deal.
@@ -339,6 +353,38 @@
     return { first_unit_need: unitAt(0, true, !fin).need, snapshots: snaps, blocked_by_income: blockedByIncome > 0 };
   }
 
-  const api = { run, rightPrice, stress, portfolio, affordability, cashVsLoan, paymentPlan, loanFromPayment, pmt, balanceAfter, irr, strLicence };
+  // What actually lands in the owner's bank account from short-term rental, month by month (average month).
+  // operator "company": a licensed holiday-home operator collects bookings and deducts the platform fee, its own fee,
+  // cleaning, guest consumables and the tourism fee it remits; utilities, the permit, service charge, maintenance and
+  // insurance stay with the owner (market practice, 2026). deductSc = special agreement: it also deducts the service
+  // charge, chiller and utilities from the payout.
+  // operator "self": the platform pays the owner directly; the owner pays every cost himself.
+  function strPayout(res, opts) {
+    const st = res.income.short_term; if (!st) return null;
+    const c = st.costs, o = Object.assign({ operator: "company", deductSc: false }, opts);
+    const fixed = (c.service_charge || 0) + (c.chiller || 0);
+    const run12 = (k) => (c[k] || 0);
+    const byOperator = o.operator === "company"
+      ? run12("platform") + run12("management") + run12("tourism_fees") + run12("cleaning_net") + run12("consumables") + (o.deductSc ? fixed + run12("utilities") : 0)
+      : run12("platform");
+    const deposit = st.gross - byOperator;
+    const ownerPays = sum(c) - byOperator;
+    const debt = res.annual_debt_service;
+    return { operator: o.operator, deduct_sc: o.operator === "company" && o.deductSc,
+      gross_month: st.gross / 12, deducted_month: byOperator / 12, deposit_month: deposit / 12, deposit_year: deposit,
+      owner_pays_year: ownerPays, owner_pays_month: ownerPays / 12, sc_by_owner_year: o.operator === "company" && o.deductSc ? 0 : fixed, utilities_year: run12("utilities"), licence_year: run12("licence"),
+      mortgage_month: debt / 12, left_month: (deposit - ownerPays - debt) / 12, left_year: deposit - ownerPays - debt };
+  }
+  // Annual rent paid in cheques: amount per cheque, months of instalments each cheque must cover, shortfall.
+  function rentCheques(res, cheques) {
+    const lt = res.income.long_term; if (!lt) return null;
+    const n = Math.max(1, Math.round(cheques || 1)), per = lt.gross_rent / n, months = 12 / n;
+    const debtPer = res.monthly_payment * months;
+    const ownerYear = sum(lt.costs);
+    return { cheques: n, per_cheque: per, months_covered: months, mortgage_per_period: debtPer,
+      after_mortgage_per_cheque: per - debtPer, net_year: lt.cash_flow, net_month: lt.cash_flow / 12, owner_costs_year: ownerYear };
+  }
+
+  const api = { strPayout, rentCheques, tenureRange, run, rightPrice, stress, portfolio, affordability, cashVsLoan, paymentPlan, loanFromPayment, pmt, balanceAfter, irr, strLicence };
   if (typeof module !== "undefined") module.exports = api; else root.AqarEngine = api;
 })(this);
