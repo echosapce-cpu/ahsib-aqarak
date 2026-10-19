@@ -71,6 +71,9 @@ input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visi
 .results[data-tab="offplan"] .kpis{order:-2} .results[data-tab="offplan"] #p-plan{order:-1}
 .results[data-tab="finance"] #p-pay{order:-1}
 .results:not(.showall) .fold{display:none}
+#form.simple[data-tab=ready] .adv,#form.simple[data-tab=offplan] .adv{display:none}
+#form:not(.simple) .simple-only{display:none}
+.adv-toggle{width:100%;margin:8px 0 4px;color:var(--seal);font-weight:600}
 .results.empty > :not(#empty):not(.legal):not(#p-fb){display:none!important}
 .morebtn{align-self:center;padding:10px 20px;border-radius:999px;border:1px solid var(--seal);color:var(--seal);font-weight:600}
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
@@ -180,7 +183,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   </nav>
 
   <div class="grid" id="grid">
-    <form class="panel" id="form" autocomplete="off">
+    <form class="panel simple" id="form" autocomplete="off">
       <div class="example" id="example">ابدأ بسعر العقار. الباقي اختياري.</div>
 
       <fieldset data-tabs="ready offplan finance portfolio"><legend>العقار</legend><div class="f">
@@ -188,17 +191,17 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <label hidden>الحالة<select id="status"><option value="ready">جاهز</option><option value="offplan">على الخارطة</option></select></label>
         <label>السعر (درهم)<input id="price" type="number" min="10000" step="1000" placeholder="مثال: 800000"></label>
         <label>غرف النوم<select id="bedrooms"><option value="0">استوديو</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4+</option></select></label>
-        <label class="full">تشتري من<select id="resale"><option value="1">مالك (عن طريق مكتب غالباً)</option><option value="0">المطور مباشرة</option></select></label>
-        <label class="full">عليه رسوم خدمة سنوية؟<select id="sc_mode">
+        <label class="full adv">تشتري من<select id="resale"><option value="1">مالك (عن طريق مكتب غالباً)</option><option value="0">المطور مباشرة</option></select></label>
+        <label class="full adv">عليه رسوم خدمة سنوية؟<select id="sc_mode">
           <option value="est">نعم — ما أعرف المبلغ، قدّرها لي</option>
           <option value="total">نعم — أعرف المبلغ السنوي</option>
           <option value="psf">نعم — أعرف السعر للقدم المربع</option>
           <option value="none">لا (بيت/فيلا بدون جمعية ملاك)</option>
         </select></label>
-        <label class="full" id="sc_total_wrap" hidden>رسوم الخدمة السنوية (درهم)<input id="sc_total" type="number" min="0" step="100" value="6000"></label>
-        <span class="hint full" id="sc_hint"></span>
+        <label class="full adv" id="sc_total_wrap" hidden>رسوم الخدمة السنوية (درهم)<input id="sc_total" type="number" min="0" step="100" value="6000"></label>
+        <span class="hint full adv" id="sc_hint"></span>
       </div>
-      <details class="more"><summary>تفاصيل أكثر (اختياري)</summary><div class="f">
+      <details class="more adv"><summary>تفاصيل أكثر (اختياري)</summary><div class="f">
         <label>المساحة (قدم²)<input id="size_sqft" type="number" min="0" placeholder="اختياري"></label>
         <label>رسوم الخدمة (درهم/قدم²/سنة)<input id="service_charge_psf" type="number" min="0" step="0.5" value="13"></label>
         <label>تبريد مركزي على المالك (شهرياً)<input id="chiller_monthly" type="number" min="0" value="0"></label>
@@ -229,7 +232,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <label class="full">على كم سنة بعد الاستلام<input id="pp_y" type="number" min="0" max="10" step="0.5" value="0"></label>
       </div></details></fieldset>
 
-      <fieldset data-tabs="ready offplan finance portfolio"><legend>التمويل</legend><div class="f">
+      <fieldset class="adv" data-tabs="ready offplan finance portfolio"><legend>التمويل</legend><div class="f">
         <label class="check full"><input id="fin_on" type="checkbox"> <span id="fin_lbl">أقساط من البنك (رهن عقاري)</span></label>
         <label>الراتب الشهري<input id="salary" type="number" min="0" step="500" placeholder="اختياري"></label>
         <label>أقساط ديون حالية (شهرياً)<input id="debts" type="number" min="0" step="100" placeholder="قروض وبطاقات"></label>
@@ -248,16 +251,17 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
       <fieldset data-tabs="ready offplan portfolio"><legend>الإيجار</legend><div class="f">
         <label>الإيجار السنوي (درهم)<input id="annual_rent" type="number" min="0" step="500" placeholder="مثال: 50000"></label>
-        <label class="check"><input id="str_on" type="checkbox"> قارن مع Airbnb</label>
-        <label>سعر الليلة (درهم)<input id="adr" type="number" min="0" step="10" placeholder="مثال: 450"></label>
-        <label>نسبة الإشغال %<input id="occupancy" type="number" min="5" max="95" step="1" value="65"></label>
-        <label id="lt_cheques_w">الإيجار السنوي يوصلك على<select id="lt_cheques"><option value="1">شيك واحد</option><option value="2">شيكين</option><option value="4" selected>4 شيكات</option><option value="6">6 شيكات</option><option value="12">12 شيك (شهري)</option></select></label>
-        <label id="lt_mgr_w">الإيجار السنوي عن طريق<select id="lt_mgr"><option value="leasing" selected>وسيط يأجّر (عمولة مرة بالسنة)</option><option value="full">شركة تدير العقار كامل</option><option value="none">أأجّر بنفسي</option></select></label>
-        <label id="str_op_w">مين يدير الـ Airbnb؟<select id="str_op"><option value="company" selected>شركة بيوت عطلات مرخّصة</option><option value="self">أديره بنفسي (رخصة باسمي)</option></select></label>
-        <label id="str_sc_w">رسوم الخدمات السنوية<select id="str_sc"><option value="self" selected>أدفعها أنا بنفسي (المعتاد)</option><option value="deduct">باتفاق: الشركة تخصمها من دخلي الشهري</option></select></label>
-        <span class="hint full" id="op_hint"></span>
+        <label class="check adv"><input id="str_on" type="checkbox"> قارن مع Airbnb</label>
+        <label class="adv">سعر الليلة (درهم)<input id="adr" type="number" min="0" step="10" placeholder="مثال: 450"></label>
+        <label class="adv">نسبة الإشغال %<input id="occupancy" type="number" min="5" max="95" step="1" value="65"></label>
+        <label class="adv" id="lt_cheques_w">الإيجار السنوي يوصلك على<select id="lt_cheques"><option value="1">شيك واحد</option><option value="2">شيكين</option><option value="4" selected>4 شيكات</option><option value="6">6 شيكات</option><option value="12">12 شيك (شهري)</option></select></label>
+        <label class="adv" id="lt_mgr_w">الإيجار السنوي عن طريق<select id="lt_mgr"><option value="leasing" selected>وسيط يأجّر (عمولة مرة بالسنة)</option><option value="full">شركة تدير العقار كامل</option><option value="none">أأجّر بنفسي</option></select></label>
+        <label class="adv" id="str_op_w">مين يدير الـ Airbnb؟<select id="str_op"><option value="company" selected>شركة بيوت عطلات مرخّصة</option><option value="self">أديره بنفسي (رخصة باسمي)</option></select></label>
+        <label class="adv" id="str_sc_w">رسوم الخدمات السنوية<select id="str_sc"><option value="self" selected>أدفعها أنا بنفسي (المعتاد)</option><option value="deduct">باتفاق: الشركة تخصمها من دخلي الشهري</option></select></label>
+        <span class="hint full adv" id="op_hint"></span>
+        <span class="hint full simple-only" data-tabs="ready offplan">الباقي محسوب بقيم افتراضية محافظة: كاش بدون تمويل، رسوم خدمة مقدّرة، وعمولة مكتب لو الشراء من مالك. غيّرها من "خيارات أكثر".</span>
       </div>
-      <details class="more"><summary>تفاصيل الإيجار</summary><div class="f">
+      <details class="more adv"><summary>تفاصيل الإيجار</summary><div class="f">
         <label>شغور متوقع %<input id="vacancy" type="number" min="0" max="50" step="1" value="5"></label>
         <label>رسوم شركة بيوت العطلات %<input id="management_pct" type="number" min="0" max="40" step="1" value="20"></label>
         <label>سعر الليلة اللي كتبته<select id="tour_mode"><option value="incl" selected>شامل رسوم السياحة (الأحوط)</option><option value="guest">الرسوم تنضاف على الضيف فوقه</option></select></label>
@@ -286,7 +290,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <span class="hint full" id="pf_rg_h" hidden>أبوظبي: مركز أبوظبي العقاري أوقف زيادات الإيجار من يونيو 2026 حتى إشعار آخر، فالافتراضي هنا 0%. غيّره لو تبغى تختبر افتراض ثاني.</span>
       </div></details></fieldset>
 
-      <details class="more" data-tabs="ready offplan portfolio"><summary>افتراضات المستقبل (اختياري)</summary><div class="f">
+      <button type="button" class="adv-toggle" id="adv-btn" data-tabs="ready offplan">خيارات أكثر: تمويل البنك، Airbnb، رسوم الخدمة، الوسيط</button>
+      <details class="more adv" data-tabs="ready offplan portfolio"><summary>افتراضات المستقبل (اختياري)</summary><div class="f">
         <label>سنوات الاحتفاظ<input id="exit_years" type="number" min="1" max="30" value="5"></label>
         <label>نمو السعر سنوياً %<input id="appreciation" type="number" min="-10" max="20" step="0.5" value="3"></label>
         <label>العائد الصافي المستهدف %<input id="target" type="number" min="1" max="20" step="0.5" value="6"></label>
@@ -1320,7 +1325,7 @@ function setTab(t, fromUser) {
   document.querySelectorAll("#tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
   document.querySelectorAll("[data-tabs]").forEach((el) => { el.hidden = !el.dataset.tabs.split(" ").includes(t); });
   $("grid").classList.toggle("wide", t === "guide");
-  $("results").dataset.tab = t;
+  $("results").dataset.tab = t; $("form").dataset.tab = t;
   if (t === "ready" || t === "offplan") {
     const was = $("status").value; $("status").value = t;
     if (fromUser && was !== t) { $("resale").value = t === "offplan" ? "0" : "1"; syncBroker(); }
@@ -1400,6 +1405,7 @@ document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("cli
 function rgDefault() { const ad = $("emirate").value === "abu_dhabi"; $("pf_rg_h").hidden = !ad; if (!edited.pf_rg) $("pf_rg").value = ad ? 0 : 2; }
 $("emirate").addEventListener("change", () => { rgDefault(); compute(); });
 $("ask-missing").addEventListener("click", () => { $("fb-kind").value = "question"; const tb = $("results").dataset.tab; if ([...$("fb-tab").options].some((o) => o.value === tb)) $("fb-tab").value = tb; setTimeout(() => $("fb-text").focus(), 300); });
+$("adv-btn").addEventListener("click", () => { const s = $("form").classList.toggle("simple"); $("adv-btn").textContent = s ? "خيارات أكثر: تمويل البنك، Airbnb، رسوم الخدمة، الوسيط" : "خيارات أقل"; });
 $("fin_on").checked = false;
 rgDefault();
 scUI();

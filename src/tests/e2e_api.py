@@ -46,6 +46,13 @@ with sync_playwright() as p:
     assert "غير موثّق" not in pg.text_content("#ind") and pg.locator("#rent_cut_w").is_hidden()
     pg.select_option("#emirate", "dubai"); pg.dispatch_event("#emirate", "input"); pg.wait_for_timeout(400)
     assert "إيجاري" in pg.inner_html("#rv_steps")
+    # simple first screen: advanced inputs hidden on ready until "more options"; finance tab keeps them
+    pg.goto("file://" + page_path + "?v=6#ready"); pg.wait_for_timeout(400)
+    assert pg.locator("#price").is_visible() and pg.locator("#annual_rent").is_visible()
+    assert pg.locator("#fin_on").is_hidden() and pg.locator("#str_on").is_hidden() and pg.locator("#resale").is_hidden()
+    pg.fill("#price", "900000"); pg.fill("#annual_rent", "60000"); pg.wait_for_timeout(400); assert "%" in pg.text_content("#k-net")
+    pg.click("#adv-btn"); pg.wait_for_timeout(200); assert pg.locator("#fin_on").is_visible() and pg.locator("#str_on").is_visible()
+    pg.goto("file://" + page_path + "?v=7#finance"); pg.wait_for_timeout(400); assert pg.locator("#salary").is_visible()
     pg.goto("file://" + page_path + "?v=5#portfolio"); pg.wait_for_timeout(400)
     pg.select_option("#emirate", "abu_dhabi"); pg.wait_for_timeout(200); assert pg.input_value("#pf_rg") == "0", pg.input_value("#pf_rg")
     pg.select_option("#emirate", "dubai"); pg.wait_for_timeout(200); assert pg.input_value("#pf_rg") == "2"
