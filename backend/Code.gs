@@ -3,7 +3,7 @@
  *  (Execute as: Me, Who has access: Anyone). Stores nothing personal:
  *  no salary, debts, age, names or numbers are ever sent by the page. */
 const COLS = {
-  uses: ["ts", "uid"],
+  uses: ["ts", "uid", "ref"],
   reviews: ["ts", "uid", "stars", "review", "owner_reply", "hidden"],
   feedback: ["ts", "uid", "kind", "tab", "text", "emirate", "price", "status"],
   events: ["ts", "uid", "session", "tab", "emirate", "status", "beds", "price_band", "seller", "financed",
@@ -39,7 +39,7 @@ function doPost(e) {
   try {
     const now = new Date();
     if (b.t === "use") {
-      sheet_("uses").appendRow([now, uid]);
+      const ref = String(clean_(b.ref, 40)); sheet_("uses").appendRow([now, uid, /^[a-z0-9]{8,40}$/.test(ref) && ref !== uid ? ref : ""]);
     } else if (b.t === "review") {
       const stars = Math.round(+b.stars);
       if (!(stars >= 1 && stars <= 5)) return out_({ ok: false, err: "bad stars" });
