@@ -283,6 +283,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <details class="more"><summary>تفاصيل المحفظة</summary><div class="f">
         <label>نمو الإيجار سنوياً %<input id="pf_rg" type="number" min="-5" max="10" step="0.5" value="2"></label>
         <label>تؤجر<select id="pf_strategy"><option value="long_term">سنوي</option><option value="short_term">قصير</option></select></label>
+        <span class="hint full" id="pf_rg_h" hidden>أبوظبي: مركز أبوظبي العقاري أوقف زيادات الإيجار من يونيو 2026 حتى إشعار آخر، فالافتراضي هنا 0%. غيّره لو تبغى تختبر افتراض ثاني.</span>
       </div></details></fieldset>
 
       <details class="more" data-tabs="ready offplan portfolio"><summary>افتراضات المستقبل (اختياري)</summary><div class="f">
@@ -319,6 +320,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <section class="panel" data-tabs="ready offplan finance"><h2>اسأل عن نتيجتك</h2>
         <div class="qa-chips" id="qa"></div>
         <div class="answer" id="qa-out" hidden></div>
+        <p class="hint">سؤالك مو موجود؟ <a href="#p-fb" id="ask-missing">اكتبه لنا</a> وبنضيف جوابه للأداة.</p>
         <form class="ask" id="ask-form" hidden><input id="ask" placeholder="اكتب سؤالك عن هذا العقار" maxlength="300"><button class="pri" type="submit">اسأل</button></form>
       </section>
 
@@ -521,7 +523,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <p class="hint">لقيت رقم غلط، أو شي ناقص، أو عندك فكرة؟ اكتبها هنا. ملاحظتك لا تُنشر، وتُستخدم لتحسين الأداة فقط.</p>
         <div id="fb-form" hidden>
           <div class="f">
-            <label>النوع<select id="fb-kind"><option value="bug">خطأ في رقم أو حساب</option><option value="idea">اقتراح أو تحسين</option><option value="unclear">شي مو واضح</option><option value="other">غير ذلك</option></select></label>
+            <label>النوع<select id="fb-kind"><option value="idea" selected>اقتراح أو تحسين</option><option value="question">سؤال ما لقيت جوابه</option><option value="bug">خطأ في رقم أو حساب</option><option value="unclear">شي مو واضح</option><option value="other">غير ذلك</option></select></label>
             <label>الصفحة<select id="fb-tab"><option value="ready">عقار جاهز</option><option value="offplan">قيد الإنشاء</option><option value="finance">التمويل</option><option value="portfolio">المحفظة</option><option value="guide">الدليل</option></select></label>
           </div>
           <textarea id="fb-text" maxlength="600" placeholder="اكتب ملاحظتك — بدون أسماء أو أرقام تواصل"></textarea>
@@ -1394,7 +1396,12 @@ $("form").addEventListener("input", () => { touched = true; clearTimeout(tmr); t
 $("form").addEventListener("submit", (e) => e.preventDefault());
 document.querySelectorAll("[data-dlg]").forEach((b) => b.addEventListener("click", () => $(b.dataset.dlg).showModal()));
 document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", () => b.closest("dialog").close()));
+// Abu Dhabi rent freeze (ADREC, June 2026): default rent growth 0% there unless the user set it.
+function rgDefault() { const ad = $("emirate").value === "abu_dhabi"; $("pf_rg_h").hidden = !ad; if (!edited.pf_rg) $("pf_rg").value = ad ? 0 : 2; }
+$("emirate").addEventListener("change", () => { rgDefault(); compute(); });
+$("ask-missing").addEventListener("click", () => { $("fb-kind").value = "question"; const tb = $("results").dataset.tab; if ([...$("fb-tab").options].some((o) => o.value === tb)) $("fb-tab").value = tb; setTimeout(() => $("fb-text").focus(), 300); });
 $("fin_on").checked = false;
+rgDefault();
 scUI();
 setTab((location.hash || "").replace("#", "") || "ready", false);
 </script>

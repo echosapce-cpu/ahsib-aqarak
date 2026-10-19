@@ -46,6 +46,10 @@ with sync_playwright() as p:
     assert "غير موثّق" not in pg.text_content("#ind") and pg.locator("#rent_cut_w").is_hidden()
     pg.select_option("#emirate", "dubai"); pg.dispatch_event("#emirate", "input"); pg.wait_for_timeout(400)
     assert "إيجاري" in pg.inner_html("#rv_steps")
+    pg.goto("file://" + page_path + "?v=5#portfolio"); pg.wait_for_timeout(400)
+    pg.select_option("#emirate", "abu_dhabi"); pg.wait_for_timeout(200); assert pg.input_value("#pf_rg") == "0", pg.input_value("#pf_rg")
+    pg.select_option("#emirate", "dubai"); pg.wait_for_timeout(200); assert pg.input_value("#pf_rg") == "2"
+    assert pg.locator("#fb-kind option[value=question]").count() == 1 and pg.input_value("#fb-kind") == "idea"
     pg.goto("file://" + page_path + "?v=4#guide"); pg.wait_for_timeout(500)
     assert pg.locator("#g-tenant").is_visible() and "المادة 28" in pg.inner_html("#g-tenant") and "سيناريو 4" in pg.inner_html("#g-tenant")
     assert not errs, errs
