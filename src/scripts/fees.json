@@ -44,6 +44,8 @@
         "setup_one_off": 0,
         "tourism_fee_pct": 0.0,
         "tourism_per_room_night": 10,
+        "tourism_per_room_night_deluxe": 15,
+        "tourism_deluxe_note": "AED 15 deluxe class: operator source (Deluxe Holiday Homes KB), not yet confirmed on an official DET page",
         "status_2026": "May 2026 relief: permit fee and Tourism Dirham exempt, 7% municipality fee suspended, no end date published. Defaults keep the normal (non-relief) values; set relief=true to apply.",
         "tourism_per_unit_night": 0
       },

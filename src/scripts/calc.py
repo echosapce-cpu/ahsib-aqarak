@@ -140,7 +140,8 @@ def str_rates(e, d, s):
     lic = 0 if relief else str_licence(st, d["bedrooms"])
     if relief or s["tourism_passed_to_guest"]:
         return 0, 0, 0, lic
-    return st["tourism_fee_pct"], st["tourism_per_room_night"], st.get("tourism_per_unit_night", 0), lic
+    prn = st.get("tourism_per_room_night_deluxe", st["tourism_per_room_night"]) if s.get("deluxe") else st["tourism_per_room_night"]
+    return st["tourism_fee_pct"], prn, st.get("tourism_per_unit_night", 0), lic
 
 
 def str_model(e, d, s, occ, adr, fixed_owner):

@@ -75,7 +75,8 @@
     const st = e.str, relief = d.relief && d.emirate === "dubai";
     const lic = relief ? 0 : strLicence(st, d.bedrooms);
     if (relief || s.tourism_passed_to_guest) return [0, 0, 0, lic];
-    return [st.tourism_fee_pct, st.tourism_per_room_night, st.tourism_per_unit_night || 0, lic];
+    const prn = s.deluxe && st.tourism_per_room_night_deluxe != null ? st.tourism_per_room_night_deluxe : st.tourism_per_room_night;
+    return [st.tourism_fee_pct, prn, st.tourism_per_unit_night || 0, lic];
   }
   function strModel(e, d, s, occ, adr, fixedOwner) {
     const rooms = Math.max(d.bedrooms, 1), nights = 365 * occ;
