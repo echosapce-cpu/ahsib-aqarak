@@ -15,6 +15,7 @@ AUTO (do it, test, release, push, then report what/why/how to undo with the comm
 - clear bugs (broken button, wrong label, JS error, layout broken on phone, a number shown wrong because of a code error);
 - wording that users report as unclear; small UX simplifications that remove friction;
 - at most 3 small changes per day; one commit per change; `git revert <hash>` is the rollback.
+REVIEW TEXT MODERATION (protects Echo legally): written reviews are public only when column `approved` in sheet tab reviews is TRUE. AUTO-approve only text that names no person, company, developer, project or broker, has no phone/email/link, no insult, accusation or claim of fraud, and is about the tool itself. Anything doubtful stays pending and goes to Echo with a one-line reason. Never edit a review's wording.
 ASK ECHO FIRST: any new feature or new page; any change to calculation formulas or to fees (fees follow the weekly fee rules only); hiding a review; writing an owner reply; anything that collects new data.
 NEVER: collect salary, debts, age, names, phones or emails; remove the tracking opt-out; fake reviews or counters; name or rank developers/projects; give buy/sell commands; store keys/passwords; touch any other repo.
 

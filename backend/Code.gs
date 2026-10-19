@@ -4,7 +4,7 @@
  *  no salary, debts, age, names or numbers are ever sent by the page. */
 const COLS = {
   uses: ["ts", "uid", "ref"],
-  reviews: ["ts", "uid", "stars", "review", "owner_reply", "hidden"],
+  reviews: ["ts", "uid", "stars", "review", "owner_reply", "hidden", "approved"],
   feedback: ["ts", "uid", "kind", "tab", "text", "emirate", "price", "status"],
   events: ["ts", "uid", "session", "tab", "emirate", "status", "beds", "price_band", "seller", "financed",
     "str", "sc_mode", "plan", "net_yield", "payback", "right_vs_price", "dbr_ok", "fields", "tab_visits"],
@@ -47,9 +47,11 @@ function doPost(e) {
       const row = [now, uid, stars, clean_(b.review, 280)];
       if (last > 1) { // one review per visitor: update instead of duplicating
         const ids = sh.getRange(2, 2, last - 1, 1).getValues();
-        for (let i = 0; i < ids.length; i++) if (ids[i][0] === uid) { sh.getRange(i + 2, 1, 1, 4).setValues([row]); cache.remove("stats"); return out_({ ok: true, updated: true }); }
+        for (let i = 0; i < ids.length; i++) if (ids[i][0] === uid) { sh.getRange(i + 2, 1, 1, 4).setValues([row]); sh.getRange(i + 2, 7).setValue(""); cache.remove("stats"); return out_({ ok: true, updated: true, pending: !!row[3] }); }
       }
-      sh.appendRow(row.concat(["", ""]));
+      sh.appendRow(row.concat(["", "", ""]));
+      cache.remove("stats");
+      return out_({ ok: true, pending: !!row[3] });
     } else if (b.t === "feedback") {
       const text = clean_(b.text, 600); if (!text) return out_({ ok: false, err: "empty" });
       const c = b.ctx || {};
@@ -74,14 +76,15 @@ function doGet() {
   // count only ratings from visitors who actually ran a calculation (keeps the average honest)
   const tried = {}; if (ul > 1) us.getRange(2, 2, ul - 1, 1).getValues().forEach((r) => (tried[r[0]] = 1));
   const sh = sheet_("reviews"), last = sh.getLastRow();
-  const rows = last > 1 ? sh.getRange(2, 1, last - 1, 6).getValues() : [];
+  const rows = last > 1 ? sh.getRange(2, 1, last - 1, 7).getValues() : [];
   let raters = 0, sum = 0; const revs = [];
-  for (const [ts, ruid, stars, review, reply, hidden] of rows) {
+  for (const [ts, ruid, stars, review, reply, hidden, approved] of rows) {
     if (!tried[ruid]) continue;
     if (hidden === true || String(hidden).toLowerCase() === "true" || hidden === "1") continue;
     const st = +stars; if (!(st >= 1 && st <= 5)) continue;
     raters++; sum += st;
-    if (review) revs.push({ stars: st, review: String(review).replace(/^'/, ""), owner_reply: String(reply || ""), ts: new Date(ts).getTime() });
+    const ok = approved === true || String(approved).toLowerCase() === "true" || approved === "1";
+    if (review && ok) revs.push({ stars: st, review: String(review).replace(/^'/, ""), owner_reply: String(reply || ""), ts: new Date(ts).getTime() });
   }
   revs.sort((a, b) => b.ts - a.ts);
   const body = JSON.stringify({ ok: true, uses: uses, raters: raters, avg: raters ? sum / raters : 0, reviews: revs.slice(0, 8) });

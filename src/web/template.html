@@ -356,7 +356,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       </section>
 
       <section class="panel" id="p-rate" data-tabs="ready offplan finance portfolio" hidden><h2>كيف كانت الحسبة؟</h2>
-        <p class="hint" id="rate-hint">تقييمك يظهر للناس كما هو، بدون اسمك. يُحسب فقط تقييم من جرّب الحاسبة فعلاً.</p>
+        <p class="hint" id="rate-hint">النجوم تنحسب مباشرة، والكلام المكتوب يظهر بعد المراجعة، بدون اسمك. لا تذكر أسماء أشخاص أو شركات أو أرقام تواصل.</p>
         <div id="rev-form">
           <div class="stars" id="stars" role="radiogroup" aria-label="التقييم"></div>
           <textarea id="rev-text" maxlength="280" placeholder="رأيك (اختياري) — بدون أسماء أو أرقام تواصل"></textarea>
@@ -485,7 +485,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <li>ممنوع نسخ الأداة أو كودها أو تصميمها أو قاعدة رسومها أو إعادة نشرها أو بيعها باسم آخر.</li>
     <li>ممنوع إزالة اسم الأداة أو إخلاء المسؤولية من النتائج، أو استخدامها للتشهير بأي جهة أو تضليل الغير.</li>
     <li>الاسم والكود والتصميم والمحتوى محمية بموجب المرسوم بقانون اتحادي رقم (38) لسنة 2021.</li>
-    <li>التقييمات تُعرض بلا أسماء ولا يُعدَّل مضمونها، ويُحجب المسيء أو ما يذكر أشخاصاً أو جهات بعينها. الآراء تعبّر عن أصحابها فقط.</li>
+    <li>التقييمات تُعرض بلا أسماء ولا يُعدَّل مضمونها. الكلام المكتوب يُراجع قبل ظهوره، ويُحجب المسيء أو ما يذكر أشخاصاً أو جهات بعينها أو بيانات تواصل. الآراء تعبّر عن أصحابها فقط.</li>
     <li>يجوز تعديل الأداة أو الشروط أو إيقافها في أي وقت دون إشعار.</li>
     <li>تخضع الشروط لقوانين دولة الإمارات العربية المتحدة.</li>
   </ul><button type="button" class="pri" data-close>إغلاق</button></dialog>
@@ -1043,7 +1043,7 @@ $("rev-send").addEventListener("click", async () => {
   $("rev-send").disabled = true;
   if (api) {
     try { const r = await apiPost({ t: "review", stars: myStars, review: $("rev-text").value.trim().slice(0, 280) });
-      if (!r.ok) throw 0; $("rev-msg").textContent = "شكراً، تم حفظ تقييمك."; afterRated(); setTimeout(apiStats, 1500);
+      if (!r.ok) throw 0; $("rev-msg").textContent = "شكراً، تم حفظ تقييمك."; afterRated(); if (r.pending) $("rev-msg").textContent += " نجومك انحسبت، وكلامك يظهر للناس بعد المراجعة."; setTimeout(apiStats, 1500);
     } catch { $("rev-msg").textContent = "تعذر حفظ التقييم الآن."; $("rev-send").disabled = false; }
     return;
   }
