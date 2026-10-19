@@ -70,11 +70,14 @@ function doPost(e) {
 function doGet() {
   const cache = CacheService.getScriptCache(), hit = cache.get("stats");
   if (hit) return ContentService.createTextOutput(hit).setMimeType(ContentService.MimeType.JSON);
-  const uses = Math.max(0, sheet_("uses").getLastRow() - 1);
+  const us = sheet_("uses"), ul = us.getLastRow(), uses = Math.max(0, ul - 1);
+  // count only ratings from visitors who actually ran a calculation (keeps the average honest)
+  const tried = {}; if (ul > 1) us.getRange(2, 2, ul - 1, 1).getValues().forEach((r) => (tried[r[0]] = 1));
   const sh = sheet_("reviews"), last = sh.getLastRow();
   const rows = last > 1 ? sh.getRange(2, 1, last - 1, 6).getValues() : [];
   let raters = 0, sum = 0; const revs = [];
-  for (const [ts, , stars, review, reply, hidden] of rows) {
+  for (const [ts, ruid, stars, review, reply, hidden] of rows) {
+    if (!tried[ruid]) continue;
     if (hidden === true || String(hidden).toLowerCase() === "true" || hidden === "1") continue;
     const st = +stars; if (!(st >= 1 && st <= 5)) continue;
     raters++; sum += st;

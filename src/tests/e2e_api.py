@@ -25,8 +25,8 @@ with sync_playwright() as p:
     for f, v in (("salary", "30000"), ("debts", "2000"), ("age", "35")):
         pg.evaluate("([f,v])=>{const e=document.getElementById(f); if(e){e.value=v; e.dispatchEvent(new Event('input',{bubbles:true}));}}", [f, v])
     pg.wait_for_timeout(7500)
-    pg.goto("file://" + page_path + "?r=abcdef123456#guide"); pg.wait_for_timeout(600)
-    pg.locator("#stars button").nth(3).click(); pg.fill("#rev-text", "تجربة"); pg.click("#rev-send"); pg.wait_for_timeout(400)
+    pg.goto("file://" + page_path + "?v=2#ready"); pg.wait_for_timeout(600); assert pg.locator("#p-rate").is_hidden(), "rate panel before result"; pg.fill("#price", "900000"); pg.wait_for_timeout(600); assert pg.locator("#p-rate").is_visible(), "rate panel not shown"
+    pg.locator("#stars button").nth(4).click(); pg.fill("#rev-text", "تجربة"); pg.click("#rev-send"); pg.wait_for_timeout(400)
     pg.fill("#fb-text", "ملاحظة تجربة"); pg.click("#fb-send"); pg.wait_for_timeout(400)
     assert any(x.get("ref") == "abcdef123456" for x in posts if x["t"] == "use")
     kinds = [x["t"] for x in posts]; print("posts:", kinds, "errors:", errs)
@@ -34,6 +34,7 @@ with sync_playwright() as p:
     blob = json.dumps(posts)
     assert "30000" not in blob and '"salary"' not in blob and '"age"' not in blob and '"debts"' not in blob, "private field leaked"
     assert all(x.get("uid") for x in posts)
+    assert pg.locator("#rate-share").is_visible(), "share CTA after 5 stars"
     assert pg.text_content("#rev-msg").startswith("شكراً") and "وصلت" in pg.text_content("#fb-msg")
     assert not errs, errs
     pg.screenshot(path=sys.argv[2], full_page=False)

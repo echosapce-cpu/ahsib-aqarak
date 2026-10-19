@@ -166,7 +166,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <span class="chip" id="t-uses" hidden>استُخدمت <b class="num" id="uses">0</b> مرة</span>
       <span class="chip" id="t-rate" hidden>★ <b class="num" id="rate">0</b> من <b class="num" id="raters">0</b> تقييم</span>
       <span class="chip">الإمارات السبع</span>
-      <span class="chip" style="border-color:var(--gold);color:var(--gold)">نسخة تجريبية — رأيك يهمنا</span>
+      <a class="chip" href="#p-fb" style="border-color:var(--gold);color:var(--gold);text-decoration:none">نسخة تجريبية — رأيك يهمنا</a>
     </div>
     <button type="button" id="share-tool" class="btn pri" style="margin-top:10px">شارك الأداة مع أهلك وربعك 📲</button>
   </header>
@@ -355,6 +355,17 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <canvas id="cv" width="1080" height="1350" hidden></canvas>
       </section>
 
+      <section class="panel" id="p-rate" data-tabs="ready offplan finance portfolio" hidden><h2>كيف كانت الحسبة؟</h2>
+        <p class="hint" id="rate-hint">تقييمك يظهر للناس كما هو، بدون اسمك. يُحسب فقط تقييم من جرّب الحاسبة فعلاً.</p>
+        <div id="rev-form">
+          <div class="stars" id="stars" role="radiogroup" aria-label="التقييم"></div>
+          <textarea id="rev-text" maxlength="280" placeholder="رأيك (اختياري) — بدون أسماء أو أرقام تواصل"></textarea>
+          <button class="pri" type="button" id="rev-send" disabled>أرسل تقييمك</button>
+          <span class="hint" id="rev-msg"></span>
+        </div>
+        <button type="button" id="rate-share" class="btn pri" hidden>شارك الأداة مع ربعك 📲</button>
+      </section>
+
       <details class="g" open data-tabs="guide"><summary>نصائح للمشتري</summary><div class="body">
         <h3>قبل الشراء</h3><ul>
           <li>تحقق من الملكية وعدم وجود رهن من القناة الرسمية في إمارتك، لا من صورة سند يرسلها أحد.</li>
@@ -437,12 +448,6 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
       <section class="panel" id="p-rev" data-tabs="guide"><h2>تقييمات المستخدمين</h2>
         <p class="hint" id="rev-empty">لا توجد تقييمات بعد. جرّب الحاسبة وكن أول من يقيّمها.</p>
-        <div id="rev-form" hidden>
-          <div class="stars" id="stars" role="radiogroup" aria-label="التقييم"></div>
-          <textarea id="rev-text" maxlength="280" placeholder="رأيك (اختياري) — بدون أسماء أو أرقام تواصل"></textarea>
-          <button class="pri" type="button" id="rev-send" disabled>أرسل تقييمك</button>
-          <span class="hint" id="rev-msg"></span>
-        </div>
         <div id="revs"></div>
       </section>
 
@@ -487,6 +492,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <li>لتحسين الأداة نحفظ إحصاءات استخدام مجهولة: الصفحة المستخدمة، الإمارة، فئة السعر، عدد الغرف، الحقول التي عدّلتها (أسماؤها فقط)، والنتائج الرئيسية. لا نحفظ الراتب أو الديون أو العمر إطلاقاً.</li>
     <li>يمكنك إيقاف ذلك في أي وقت من خيار "لا تسجّل استخدامي" أسفل الصفحة.</li>
     <li>نحفظ أيضاً عدد مرات الاستخدام والتقييم والملاحظات التي تختار إرسالها، دون اسمك.</li>
+    <li>لتمييز الزائر بدون معرفة هويته، يحفظ متصفحك رقماً عشوائياً. وإذا شاركت رابط الأداة، يحمل الرابط هذا الرقم فقط لنعرف كم انتشرت الأداة، لا من أنت.</li>
+    <li>تُحفظ هذه البيانات في جدول Google خاص بمالك الأداة، ولا يطّلع عليها غيره. التقييمات المنشورة فقط تظهر للعامة.</li>
     <li>لا نبيع أي بيانات ولا نشاركها لأغراض تسويقية.</li>
   </ul><button type="button" class="pri" data-close>إغلاق</button></dialog>
 <dialog id="d-about"><h2>من نحن</h2>
@@ -929,7 +936,14 @@ $("share-tool").addEventListener("click", async () => {
   if (navigator.share) { try { await navigator.share({ title: "احسب عقارك 100%", text, url: link }); return; } catch (e) { if (e && e.name === "AbortError") return; } }
   window.open("https://wa.me/?text=" + encodeURIComponent(text + "\n" + link), "_blank", "noopener");
 });
-function renderShare(x) { $("wa").href = "https://wa.me/?text=" + encodeURIComponent(shareText(x)); }
+let rated = false; try { rated = localStorage.getItem("aqar_rated") === "1"; } catch {}
+function showRatePanel() {
+  if (!(api || db) || !uid) return;
+  $("p-rate").hidden = false;
+  if (rated && !myStars) { $("rate-hint").textContent = "شكراً، قيّمت سابقاً. تقدر تعدّل تقييمك في أي وقت."; }
+}
+$("rate-share").addEventListener("click", () => $("share-tool").click());
+function renderShare(x) { showRatePanel(); $("wa").href = "https://wa.me/?text=" + encodeURIComponent(shareText(x)); }
 $("copy").addEventListener("click", async () => {
   if (!last) return; const t = shareText(last);
   try { await navigator.clipboard.writeText(t); $("share-msg").textContent = "تم النسخ."; }
@@ -1008,25 +1022,31 @@ function renderAgg(o) {
     el.append(h, p, rp); box.append(el);
   }
 }
+function afterRated() {
+  rated = true; try { localStorage.setItem("aqar_rated", "1"); } catch {}
+  if (myStars >= 4) { $("rate-share").hidden = false; $("rev-msg").textContent = "شكراً! إذا عجبتك، شاركها مع اللي يدورون عقار 👇"; }
+  else { $("rev-msg").textContent = "شكراً على صراحتك. اكتب لنا تحت وش الناقص ونصلحه."; $("fb-kind").value = "bug"; }
+}
 function buildStars() {
   const s = $("stars");
   for (let i = 1; i <= 5; i++) { const b = document.createElement("button"); b.type = "button"; b.textContent = "☆"; b.setAttribute("aria-label", i + " نجوم"); b.dataset.v = i; s.append(b); }
   s.addEventListener("click", (ev) => { const v = +ev.target.dataset.v; if (!v) return; myStars = v;
-    [...s.children].forEach((b, i) => (b.textContent = i < v ? "★" : "☆")); $("rev-send").disabled = false; });
+    [...s.children].forEach((b, i) => (b.textContent = i < v ? "★" : "☆")); $("rev-send").disabled = false;
+    $("rev-text").placeholder = v <= 3 ? "وش الناقص أو الغلط؟ ساعدنا نصلحه (اختياري)" : "وش عجبك؟ (اختياري) — بدون أسماء أو أرقام تواصل"; });
 }
 $("rev-send").addEventListener("click", async () => {
   if ((!db && !api) || !uid || !myStars) return;
   $("rev-send").disabled = true;
   if (api) {
     try { const r = await apiPost({ t: "review", stars: myStars, review: $("rev-text").value.trim().slice(0, 280) });
-      if (!r.ok) throw 0; $("rev-msg").textContent = "شكراً، تم حفظ تقييمك."; setTimeout(apiStats, 1500);
+      if (!r.ok) throw 0; $("rev-msg").textContent = "شكراً، تم حفظ تقييمك."; afterRated(); setTimeout(apiStats, 1500);
     } catch { $("rev-msg").textContent = "تعذر حفظ التقييم الآن."; $("rev-send").disabled = false; }
     return;
   }
   try {
     const ref = db.doc("usage/" + uid), s = await ref.get(), d = s.exists ? Object.assign({}, s.data()) : { calcs: 0 };
     d.stars = myStars; d.review = $("rev-text").value.trim().slice(0, 280) || null; d.ts = Date.now();
-    await ref.set(d); $("rev-msg").textContent = "شكراً، تم حفظ تقييمك.";
+    await ref.set(d); $("rev-msg").textContent = "شكراً، تم حفظ تقييمك."; afterRated();
   } catch { $("rev-msg").textContent = "تعذر حفظ التقييم الآن."; $("rev-send").disabled = false; }
 });
 async function sendFeedbackApi() {
@@ -1052,8 +1072,8 @@ function initApi() {
   $("fb-off").hidden = true; $("fb-form").hidden = false;
   $("fb-send").addEventListener("click", sendFeedbackApi);
   $("fb-tab").value = (location.hash || "#ready").slice(1) || "ready";
-  $("rev-form").hidden = false; buildStars();
-  apiStats(); bumpUsage();
+  buildStars();
+  apiStats(); bumpUsage(); if (last) showRatePanel();
 }
 function initCardFallback() {
   $("card").hidden = false;
@@ -1108,7 +1128,7 @@ function initCardFallback() {
     }, () => {});
   }
   db.collection("usage").limit(1000).onSnapshot((snap) => renderReviews(snap.docs), () => {});
-  if (uid && (await user.can("data.write")) !== false) { $("rev-form").hidden = false; buildStars(); bumpUsage(); }
+  if (uid && (await user.can("data.write")) !== false) { buildStars(); bumpUsage(); if (last) showRatePanel(); }
 })();
 
 $("pp_preset").addEventListener("change", () => {

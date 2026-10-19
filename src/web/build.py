@@ -21,6 +21,7 @@ if standalone:
            '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
            f'<meta name="description" content="{desc}"><meta property="og:title" content="احسب عقارك 100%">'
            f'<meta property="og:description" content="{desc}"><meta property="og:url" content="{share}">'
+           f'<meta property="og:type" content="website"><meta property="og:image" content="{share}og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">'
            '</head><body>' + out + '</body></html>')
 os.makedirs(os.path.join(H, "dist"), exist_ok=True)
 open(os.path.join(H, "dist", "index.html"), "w", encoding="utf-8").write(out)
