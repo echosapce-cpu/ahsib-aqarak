@@ -10,6 +10,9 @@ Owner: Echo. Replies to him in short Gulf Arabic.
 - `backend/API_URL` — the deployed Apps Script web-app URL (one line). Ratings/feedback/usage go to Google Sheet `1YSHVjzU62NttytNINZ-S4oXpiciKjv40j70u1i9wrU8`.
 - Tests: `node src/tests/parity.js`, `python3 src/tests/test_calc.py`, `python3 src/tests/e2e_api.py <built index> <png>`. `release.sh` runs them all and refuses to publish on failure.
 
+## Accuracy principle (Echo, 2026-10-19)
+The goal is accuracy, or the closest path to it. Every number comes from an official source with a date. When a value cannot be confirmed officially or varies by contract, do not guess: give the user an explicit choice with the conservative option as default, label the unconfirmed value visibly, and keep looking for the official source in the weekly task. Verify Echo's claims against sources before changing anything, and report what was confirmed, corrected or unconfirmed.
+
 ## Auto-fix policy (Echo approved 2026-10-19)
 AUTO (do it, test, release, push, then report what/why/how to undo with the commit hash):
 - clear bugs (broken button, wrong label, JS error, layout broken on phone, a number shown wrong because of a code error);
