@@ -7,7 +7,7 @@
     exit: { years: 5, appreciation: 0.03, sell_broker_pct: 0.02 }, relief: false,
   };
   const STR_DEFAULTS = {
-    adr: 0, occupancy: 0.6, avg_stay: 3, platform_pct: 0.15, management_pct: 0.20,
+    adr: 0, occupancy: 0.6, avg_stay: 3, platform_pct: 0.155, management_pct: 0.20,
     cleaning_per_stay: 150, cleaning_fee_charged: 0, utilities_monthly: 900, consumables_pct: 0.03,
     tourism_passed_to_guest: false, scenario_adr_pct: 0.15, scenario_occ_pts: 0.10,
   };
@@ -83,7 +83,7 @@
     const [tpct, prn, pun, licence] = strRates(e, d, s);
     const costs = Object.assign({
       platform: gross * s.platform_pct,
-      management: gross * s.management_pct,
+      management: gross * (1 - s.platform_pct) * s.management_pct, // operators usually charge on the payout after the platform fee
       tourism_fees: gross * tpct + (prn * rooms + pun) * nights,
       cleaning_net: Math.max(s.cleaning_per_stay - s.cleaning_fee_charged, 0) * stays,
       consumables: gross * s.consumables_pct,
@@ -95,7 +95,7 @@
   function breakevenOcc(e, d, s, adr, fixedOwner, debt) {
     const rooms = Math.max(d.bedrooms, 1);
     const [tpct, prn, pun, licence] = strRates(e, d, s);
-    const varPct = s.platform_pct + s.management_pct + s.consumables_pct + tpct;
+    const varPct = s.platform_pct + (1 - s.platform_pct) * s.management_pct + s.consumables_pct + tpct;
     const perNight = adr * (1 - varPct) - Math.max(s.cleaning_per_stay - s.cleaning_fee_charged, 0) / s.avg_stay - prn * rooms - pun;
     const fixed = s.utilities_monthly * 12 + licence + sum(fixedOwner) + debt;
     return perNight <= 0 ? null : fixed / (365 * perNight);

@@ -34,7 +34,7 @@ DEFAULTS = {
 
 STR_DEFAULTS = {
     "adr": 0, "occupancy": 0.6, "avg_stay": 3,
-    "platform_pct": 0.15,            # host-only fee model (conservative)
+    "platform_pct": 0.155,           # Airbnb single host-only fee (all non-EU hosts from Sept 2026)
     "management_pct": 0.20,          # 0 if self-managed
     "cleaning_per_stay": 150, "cleaning_fee_charged": 0,
     "utilities_monthly": 900,        # electricity/water/cooling/internet
@@ -152,7 +152,7 @@ def str_model(e, d, s, occ, adr, fixed_owner):
     tourism = gross * tourism_pct + (per_room * rooms + per_unit) * nights
     costs = {
         "platform": gross * s["platform_pct"],
-        "management": gross * s["management_pct"],
+        "management": gross * (1 - s["platform_pct"]) * s["management_pct"],  # operators usually charge on the payout after the platform fee
         "tourism_fees": tourism,
         "cleaning_net": max(s["cleaning_per_stay"] - s["cleaning_fee_charged"], 0) * stays,
         "consumables": gross * s["consumables_pct"],
@@ -168,7 +168,7 @@ def str_model(e, d, s, occ, adr, fixed_owner):
 def breakeven_occ(e, d, s, adr, fixed_owner, debt):
     rooms = max(d["bedrooms"], 1)
     tpct, prn, pun, licence = str_rates(e, d, s)
-    var_pct = s["platform_pct"] + s["management_pct"] + s["consumables_pct"] + tpct
+    var_pct = s["platform_pct"] + (1 - s["platform_pct"]) * s["management_pct"] + s["consumables_pct"] + tpct
     per_night = adr * (1 - var_pct) - (max(s["cleaning_per_stay"] - s["cleaning_fee_charged"], 0) / s["avg_stay"]) - prn * rooms - pun
     fixed = s["utilities_monthly"] * 12 + licence + sum(fixed_owner.values()) + debt
     if per_night <= 0:

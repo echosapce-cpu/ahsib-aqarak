@@ -22,7 +22,8 @@ def test_abu_dhabi_cash_purchase():
     st = r["income"]["short_term"]
     nights = 365 * 0.65
     gross = 450 * nights
-    costs = gross * (0.15 + 0.20 + 0.06 + 0.03) + 150 * nights / 3 + 900 * 12 + 900 + (463 * 13 + 2247 + 1000)
+    # host-only Airbnb fee 15.5%; operator fee charged on the post-platform payout
+    costs = gross * (0.155 + 0.20 * (1 - 0.155) + 0.06 + 0.03) + 150 * nights / 3 + 900 * 12 + 900 + (463 * 13 + 2247 + 1000)
     close(st["gross"], gross)
     close(st["net"], gross - costs)
     be = st["breakeven_occupancy"]

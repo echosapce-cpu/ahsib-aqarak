@@ -260,7 +260,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <details class="more"><summary>تفاصيل الإيجار</summary><div class="f">
         <label>شغور متوقع %<input id="vacancy" type="number" min="0" max="50" step="1" value="5"></label>
         <label>رسوم شركة بيوت العطلات %<input id="management_pct" type="number" min="0" max="40" step="1" value="20"></label>
-        <label>عمولة المنصة %<input id="platform_pct" type="number" min="0" max="20" step="0.5" value="15"></label>
+        <label>سعر الليلة اللي كتبته<select id="tour_mode"><option value="incl" selected>شامل رسوم السياحة (الأحوط)</option><option value="guest">الرسوم تنضاف على الضيف فوقه</option></select></label>
+        <label>عمولة المنصة %<input id="platform_pct" type="number" min="0" max="20" step="0.5" value="15.5"></label>
         <label>تنظيف لكل حجز<input id="cleaning_per_stay" type="number" min="0" step="10" value="150"></label>
         <label>متوسط مدة الحجز (ليالي)<input id="avg_stay" type="number" min="1" max="30" value="3"></label>
         <label>كهرباء وماء وإنترنت (شهرياً)<input id="utilities_monthly" type="number" min="0" step="50" value="900"></label>
@@ -558,7 +559,7 @@ function readDeal() {
     long_term: n("annual_rent") > 0 ? { annual_rent: n("annual_rent"), vacancy: n("vacancy") / 100,
       leasing_fee_pct: $("lt_mgr").value === "none" ? 0 : 0.05, management_pct: $("lt_mgr").value === "full" ? 0.05 : 0 } : null,
     short_term: $("str_on").checked && n("adr") > 0 ? { adr: n("adr"), occupancy: n("occupancy") / 100, management_pct: $("str_op").value === "self" ? 0 : n("management_pct") / 100,
-      platform_pct: n("platform_pct") / 100, cleaning_per_stay: n("cleaning_per_stay"), avg_stay: Math.max(n("avg_stay"), 1), utilities_monthly: n("utilities_monthly") } : null,
+      platform_pct: n("platform_pct") / 100, tourism_passed_to_guest: $("tour_mode").value === "guest", cleaning_per_stay: n("cleaning_per_stay"), avg_stay: Math.max(n("avg_stay"), 1), utilities_monthly: n("utilities_monthly") } : null,
     exit: { years: Math.max(Math.round(n("exit_years")), 1), appreciation: n("appreciation") / 100 }, relief: $("relief").checked };
   if ($("fin_on").checked && d.status !== "offplan") d.financing = { ltv: n("ltv") / 100, rate: n("rate_pct") / 100, years: Math.max(Math.round(n("years")), 1) };
   return d;
