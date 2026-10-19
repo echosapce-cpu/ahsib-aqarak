@@ -53,6 +53,7 @@ $manifest = @'
 clasp push --force
 
 Step "6/6 Deploying as a web app"
+$ErrorActionPreference = "Continue"  # clasp prints progress on stderr; do not treat it as an error
 $out = clasp deploy --description "v1" 2>&1 | Out-String
 Write-Host $out
 $m = [regex]::Match($out, "(AKfy[\w-]+)")
