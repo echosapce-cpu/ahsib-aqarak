@@ -1548,9 +1548,9 @@ async function drawCard(x) {
 // ---- runtime capabilities: usage counter, ratings, reviews, downloads, AI answers ----
 let db = null, uid = null, myDoc = null, myData = null, bumped = false, myStars = 0, api = null, refBy = "";
 const apiOk = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(API_URL);
-function apiPost(o) {
+function apiPost(o, keepalive) {
   // text/plain keeps it a simple CORS request (no preflight); Apps Script parses the JSON body
-  return fetch(API_URL, { method: "POST", body: JSON.stringify(Object.assign({ uid }, o)) }).then((r) => r.json());
+  return fetch(API_URL, { method: "POST", keepalive: !!keepalive, body: JSON.stringify(Object.assign({ uid }, o)) }).then((r) => r.json());
 }
 function apiStats() {
   return fetch(API_URL + "?a=stats").then((r) => r.json()).then((o) => { if (o && o.ok) renderAgg(o); }).catch(() => {});
@@ -1765,13 +1765,13 @@ function snapshotForStats() {
       dbr_ok: x.aff ? x.aff.ok : (x.hoFin ? x.hoFin.ok : null) },
     fields: Object.keys(edited) };
 }
-async function sendStats() {
+async function sendStats(flush) {
   if ((!db && !api) || !uid || $("no_track").checked) return;
   const snap = snapshotForStats(); if (!snap) return;
-  if (Date.now() - lastTrack < 10000) { clearTimeout(trackTimer); trackTimer = setTimeout(sendStats, 10000); return; }
+  if (!flush && Date.now() - lastTrack < 10000) { clearTimeout(trackTimer); trackTimer = setTimeout(sendStats, 10000); return; }
   lastTrack = Date.now();
   if (api) {
-    apiPost({ t: "event", session: sessionId, snap, tabs: tabVisits }).then(() => { for (const k of Object.keys(edited)) delete edited[k]; tabVisits = {}; }).catch(() => {});
+    apiPost({ t: "event", session: sessionId, snap, tabs: tabVisits }, flush === true).then(() => { for (const k of Object.keys(edited)) delete edited[k]; tabVisits = {}; }).catch(() => {});
     return;
   }
   try {
@@ -1786,6 +1786,8 @@ async function sendStats() {
 const sessionId = Math.random().toString(36).slice(2, 10);
 $("form").addEventListener("input", (ev) => { const id = ev.target.id; if (id && !PRIVATE_FIELDS.has(id)) edited[id] = 1;
   clearTimeout(trackTimer); trackTimer = setTimeout(sendStats, 6000); });
+// Phone users often close the page within the 6 s delay: send the pending (anonymous) snapshot when the page is hidden.
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && api && trackTimer && (Object.keys(edited).length || Object.keys(tabVisits).length)) { clearTimeout(trackTimer); trackTimer = null; sendStats(true); } });
 $("tabs").addEventListener("click", (ev) => { const t = ev.target.closest("button")?.dataset.tab; if (t) { tabVisits[t] = (tabVisits[t] || 0) + 1; clearTimeout(trackTimer); trackTimer = setTimeout(sendStats, 6000); } });
 let touched = false, tmr = null;
 $("form").addEventListener("input", () => { touched = true; clearTimeout(tmr); tmr = setTimeout(compute, 120); });

@@ -25,6 +25,11 @@ with sync_playwright() as p:
     for f, v in (("salary", "30000"), ("debts", "2000"), ("age", "35"), ("ext_debts", "3333")):
         pg.evaluate("([f,v])=>{const e=document.getElementById(f); if(e){e.value=v; e.dispatchEvent(new Event('input',{bubbles:true}));}}", [f, v])
     pg.wait_for_timeout(7500)
+    # page hidden before the 6 s delay (phone user leaves): the pending event is flushed, private fields still excluded
+    n_ev = sum(1 for x in posts if x["t"] == "event")
+    pg.goto("file://" + page_path + "?v=hide#ready"); pg.wait_for_timeout(500); pg.fill("#price", "1200000"); pg.wait_for_timeout(1000)
+    pg.evaluate("()=>{Object.defineProperty(document,'visibilityState',{configurable:true,get:()=>'hidden'}); document.dispatchEvent(new Event('visibilitychange'));}")
+    pg.wait_for_timeout(500); assert sum(1 for x in posts if x["t"] == "event") > n_ev, "event not flushed on page hide"
     pg.goto("file://" + page_path + "?v=2#ready"); pg.wait_for_timeout(600); assert pg.locator("#p-rate").is_hidden(), "rate panel before result"; pg.fill("#price", "900000"); pg.wait_for_timeout(600); assert pg.locator("#p-rate").is_visible(), "rate panel not shown"
     pg.locator("#stars button").nth(4).click(); pg.fill("#rev-text", "تجربة"); pg.click("#rev-send"); pg.wait_for_timeout(400)
     pg.fill("#fb-text", "ملاحظة تجربة"); pg.click("#fb-send"); pg.wait_for_timeout(400)
