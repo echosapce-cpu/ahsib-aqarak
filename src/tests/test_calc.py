@@ -43,7 +43,7 @@ def test_dubai_financed_and_ltv_cap():
     close(r["loan"], 1_200_000 * 0.60)
     up = r["upfront_fees"]
     close(up["transfer_registration"], 48000)
-    close(up["trustee"], 4200 * 1.05)
+    close(up["trustee"], 4000 * 1.05)  # DLD official: AED 4,000 + VAT at >= 500,000
     close(up["mortgage_registration"], 720000 * 0.0025 + 290)
     close(up["bank_fee_incl_vat"], 7200 * 1.05)
     m = calc.pmt(720000, 0.045, 25)
@@ -72,6 +72,14 @@ def test_all_emirates_run_and_specific_rules():
     close(calc.str_licence(sh, 6), 100 + 1200 + 550)
     low = calc.run({"price": 500000, "emirate": "fujairah"}, FEES)
     assert any("low-confidence" in w for w in low["warnings"])
+
+
+def test_dubai_trustee_official_threshold():
+    # dubailand.gov.ae Property Sale Registration (checked 2026-11-17): 2,000 + VAT below 500,000; 4,000 + VAT at 500,000 or more
+    for price, fee in ((499_999, 2000), (500_000, 4000), (2_000_000, 4000)):
+        r = calc.run({"price": price, "emirate": "dubai", "buyer": "expat", "size_sqft": 600, "bedrooms": 1,
+                      "service_charge_psf": 15, "long_term": {"annual_rent": 40000}}, FEES)
+        close(r["upfront_fees"]["trustee"], fee * 1.05)
 
 
 def test_irr():

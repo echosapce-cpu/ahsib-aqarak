@@ -109,7 +109,7 @@ def upfront(fees, e, d, price, loan):
         items[k] = v
     if e.get("trustee") and d["resale"]:
         t = e["trustee"]
-        fee = t["low"] if price <= t["threshold"] else t["high"]
+        fee = t["low"] if price < t["threshold"] else t["high"]  # DLD: >= 500,000 pays the high fee
         items["trustee"] = fee * (1 + vat if t.get("vat") else 1)
     if d["broker"] and d["resale"]:
         items["broker_incl_vat"] = price * e["broker_pct"] * (1 + vat)

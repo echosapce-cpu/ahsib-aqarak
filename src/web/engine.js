@@ -52,7 +52,7 @@
     items.transfer_registration = Math.max(price * pct, tmin);
     for (const [k, v] of Object.entries(e.fixed)) items[k] = v;
     if (e.trustee && d.resale) {
-      const t = e.trustee, fee = price <= t.threshold ? t.low : t.high;
+      const t = e.trustee, fee = price < t.threshold ? t.low : t.high;  // DLD: >= 500,000 pays the high fee
       items.trustee = fee * (t.vat ? 1 + vat : 1);
     }
     if (d.broker && d.resale) items.broker_incl_vat = price * e.broker_pct * (1 + vat);

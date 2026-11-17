@@ -1,9 +1,9 @@
 {
   "_meta": {
-    "last_verified": "2026-10-19",
+    "last_verified": "2026-11-17",
     "note": "Secondary sources unless marked official. Re-verify before publishing; the weekly scan updates this file.",
     "sources": {
-      "dubai_buy": "https://realestateclubdubai.com/blog/buying-guide/what-are-the-fees-for-buying-property-in-uae-2026-complete-breakdown-dld-broker-mortgage (2026-04-27)",
+      "dubai_buy": "OFFICIAL https://dubailand.gov.ae/en/eservices/request-for-sale-registration (checked 2026-11-17: 2% seller + 2% buyer; service partner/trustee AED 2,000 + VAT if sale value < 500,000, AED 4,000 + VAT if >= 500,000; title deed AED 250). Other items: https://realestateclubdubai.com/blog/buying-guide/what-are-the-fees-for-buying-property-in-uae-2026-complete-breakdown-dld-broker-mortgage (2026-04-27)",
       "abudhabi_buy": "https://bloomholding.com/articles/abu-dhabi-property-fees-2026 (2026-02-22)",
       "ltv": "https://realestateclubdubai.com/blog/buying-guide/how-much-can-you-borrow-ltv-rules-dubai (2026-04-06), CBUAE Circular 31/2013",
       "abudhabi_str": "https://www.bnbcalc.com/de/blog/short-term-rental-regulation/Abu-Dhabi-guide (checked 2026-07, DCT Holiday Homes System)",
@@ -26,8 +26,8 @@
       },
       "trustee": {
         "threshold": 500000,
-        "low": 4000,
-        "high": 4200,
+        "low": 2000,
+        "high": 4000,
         "vat": true
       },
       "broker_pct": 0.02,
